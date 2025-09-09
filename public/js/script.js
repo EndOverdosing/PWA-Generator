@@ -94,35 +94,39 @@ document.addEventListener('DOMContentLoaded', () => {
     function processImageForUpload(file) {
         return new Promise((resolve, reject) => {
             const MAX_DIMENSION = 1024;
-            const reader = new FileReader();
-            reader.onload = (event) => {
-                const img = new Image();
-                img.onload = () => {
-                    let width = img.width;
-                    let height = img.height;
-                    if (width > MAX_DIMENSION || height > MAX_DIMENSION) {
-                        if (width > height) {
-                            height = Math.round((height * MAX_DIMENSION) / width);
-                            width = MAX_DIMENSION;
-                        } else {
-                            width = Math.round((width * MAX_DIMENSION) / height);
-                            height = MAX_DIMENSION;
-                        }
+            const objectUrl = URL.createObjectURL(file);
+            const img = new Image();
+            img.onload = () => {
+                let width = img.width;
+                let height = img.height;
+                if (width > MAX_DIMENSION || height > MAX_DIMENSION) {
+                    if (width > height) {
+                        height = Math.round((height * MAX_DIMENSION) / width);
+                        width = MAX_DIMENSION;
+                    } else {
+                        width = Math.round((width * MAX_DIMENSION) / height);
+                        height = MAX_DIMENSION;
                     }
-                    const canvas = document.createElement('canvas');
-                    canvas.width = width;
-                    canvas.height = height;
-                    const ctx = canvas.getContext('2d');
-                    ctx.drawImage(img, 0, 0, width, height);
-                    canvas.toBlob((blob) => {
+                }
+                const canvas = document.createElement('canvas');
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, width, height);
+                canvas.toBlob((blob) => {
+                    URL.revokeObjectURL(objectUrl);
+                    if (blob) {
                         resolve(new File([blob], "processed_image.png", { type: 'image/png' }));
-                    }, 'image/png', 0.95);
-                };
-                img.onerror = reject;
-                img.src = event.target.result;
+                    } else {
+                        reject(new Error("Failed to create blob from canvas."));
+                    }
+                }, 'image/png', 0.92);
             };
-            reader.onerror = reject;
-            reader.readAsDataURL(file);
+            img.onerror = () => {
+                URL.revokeObjectURL(objectUrl);
+                reject(new Error("The selected image could not be loaded. It may be corrupted."));
+            };
+            img.src = objectUrl;
         });
     }
 
@@ -166,7 +170,7 @@ document.addEventListener('DOMContentLoaded', () => {
             getEl('#copy-link-btn').onclick = () => { getEl('#share-url-input').select(); navigator.clipboard.writeText(shareUrl); showToast('Link copied to clipboard!'); };
         } catch (error) {
             console.error("Error generating share link:", error);
-            const detailedMessage = `Could not process the uploaded image.<br><br>Please ensure the file is a standard, non-corrupted image format and try again.`;
+            const detailedMessage = `Could not process the uploaded image.<br><br>The file may be corrupted or in an unsupported format. Please try another image.`;
             showCustomAlert(detailedMessage);
             genButton.disabled = false;
             genButton.classList.remove('loading');
