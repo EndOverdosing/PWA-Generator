@@ -84,23 +84,28 @@ document.addEventListener('DOMContentLoaded', () => {
         const params = new URLSearchParams(window.location.search);
         const pwaId = params.get('id');
         if (pwaId) {
-            document.body.classList.add('pwa-mode');
-            const manifestUrl = `/api/manifest?id=${pwaId}`;
-            const response = await fetch(manifestUrl);
-            if (!response.ok) {
-                document.body.innerHTML = `<h1>PWA Not Found</h1><p>The configuration for this PWA could not be found. It may have expired or been deleted.</p>`;
-                return;
-            }
-            const manifest = await response.json();
-            document.title = manifest.name;
-            document.body.style.backgroundColor = manifest.background_color;
+            try {
+                document.body.classList.add('pwa-mode');
+                const manifestUrl = `/api/manifest?id=${pwaId}`;
+                const response = await fetch(manifestUrl);
+                if (!response.ok) throw new Error('PWA configuration not found.');
 
-            const manifestLink = document.createElement('link');
-            manifestLink.rel = 'manifest';
-            manifestLink.href = manifestUrl;
-            document.head.appendChild(manifestLink);
-            
-            launchPwaWrapper(manifest.start_url.split('?url=')[1]);
+                const manifest = await response.json();
+                document.title = manifest.name;
+                document.body.style.backgroundColor = manifest.background_color;
+
+                const existingManifest = document.querySelector('link[rel="manifest"]');
+                if(existingManifest) existingManifest.remove();
+
+                const manifestLink = document.createElement('link');
+                manifestLink.rel = 'manifest';
+                manifestLink.href = manifestUrl;
+                document.head.appendChild(manifestLink);
+                
+                launchPwaWrapper(manifest.target_url);
+            } catch (error) {
+                 document.body.innerHTML = `<h1>PWA Not Found</h1><p>The configuration for this PWA could not be found. It may have expired or been deleted.</p>`;
+            }
         } else {
              generateAndDisplayIcon();
         }
@@ -140,7 +145,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             
             const result = await response.json();
-            if (!response.ok) throw new Error(result.error);
+            if (!response.ok) throw new Error(result.error || 'Failed to create PWA link.');
 
             const shareUrl = `${window.location.origin}/?id=${result.id}`;
             genButton.remove();
@@ -157,10 +162,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function launchPwaWrapper(targetUrl) {
         const pwaWrapperView = getEl('#pwa-wrapper-view');
+        pwaWrapperView.classList.remove('hidden');
         const iframe = document.createElement('iframe');
         iframe.id = 'pwa-iframe';
         iframe.src = targetUrl;
         iframe.sandbox = "allow-forms allow-modals allow-pointer-lock allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-top-navigation";
+        pwaWrapperView.innerHTML = '';
         pwaWrapperView.appendChild(iframe);
     }
 
