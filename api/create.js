@@ -11,7 +11,7 @@ export default async function handler(req, res) {
     }
 
     try {
-        const config = req.query;
+        const config = req.body;
 
         if (!config || !config.url || !config.name || !config.iconColor) {
             return res.status(400).json({ error: 'Missing required configuration data.' });
