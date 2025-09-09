@@ -20,7 +20,9 @@ const formidableParse = (req) =>
     });
 
 export default async function handler(req, res) {
-    if (!process.env.BLOB_READ_WRITE_TOKEN) {
+    const blobToken = process.env.BLOB_READ_WRITE_TOKEN;
+
+    if (!blobToken) {
         return res.status(500).json({ error: 'Storage connection failed: The BLOB_READ_WRITE_TOKEN is not configured in the server environment.' });
     }
 
@@ -46,6 +48,7 @@ export default async function handler(req, res) {
         const blob = await put(safeFilename, fileData, {
             access: 'public',
             contentType: imageFile.mimetype,
+            token: blobToken,
         });
 
         fs.unlinkSync(imageFile.filepath);
