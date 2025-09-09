@@ -117,47 +117,38 @@ document.addEventListener('DOMContentLoaded', () => {
         alertCard.addEventListener('mouseleave', () => alertCard.style.setProperty('--opacity', '0'));
     }
 
-    async function generatePwa(config) {
-        const manifest = {
-            name: config.name,
-            short_name: config.short_name,
-            description: config.description,
-            start_url: window.location.href,
-            display: config.display,
-            background_color: config.background_color,
-            theme_color: config.theme_color,
-            icons: [{ src: config.icon, sizes: `512x512`, type: 'image/png' }]
-        };
-        const manifestBlob = new Blob([JSON.stringify(manifest, null, 2)], { type: 'application/json' });
-        const manifestUrl = URL.createObjectURL(manifestBlob);
-        if ('serviceWorker' in navigator) {
-            await navigator.serviceWorker.register('/sw.js');
-        }
-        const existingManifest = document.querySelector('link[rel="manifest"]');
-        if (existingManifest) existingManifest.remove();
-        const manifestLink = document.createElement('link');
-        manifestLink.rel = 'manifest';
-        manifestLink.href = manifestUrl;
-        document.head.appendChild(manifestLink);
-        showToast("PWA is live! This page is now installable.");
-        setTimeout(() => launchPwaWrapper(config.url, manifest.background_color), 500);
-    }
-
     async function initializeFromUrlParams() {
         const params = new URLSearchParams(window.location.search);
         if (params.has('url') && params.has('name') && params.has('icon')) {
             getEl('main').style.display = 'none';
             getEl('footer').style.display = 'none';
-            await generatePwa({
-                url: params.get('url'),
-                name: params.get('name'),
-                short_name: params.get('s_name'),
-                description: params.get('desc'),
-                display: params.get('disp'),
-                background_color: '#' + params.get('bg'),
-                theme_color: '#' + params.get('th'),
-                icon: params.get('icon')
-            });
+
+            document.title = params.get('name');
+
+            const manifestUrl = `/manifest.webmanifest${window.location.search}`;
+
+            const existingManifest = document.querySelector('link[rel="manifest"]');
+            if (existingManifest) existingManifest.remove();
+
+            const manifestLink = document.createElement('link');
+            manifestLink.rel = 'manifest';
+            manifestLink.href = manifestUrl;
+            document.head.appendChild(manifestLink);
+
+            if ('serviceWorker' in navigator) {
+                try {
+                    await navigator.serviceWorker.register('/sw.js');
+                } catch (error) {
+                    console.error('Service Worker registration failed:', error);
+                    showCustomAlert('Could not initialize the PWA environment. The service worker failed to register.');
+                }
+            } else {
+                showCustomAlert('Service Workers are not supported. This PWA may not be installable.');
+            }
+            
+            showToast("PWA is ready! This page is now installable.");
+            setTimeout(() => launchPwaWrapper(params.get('url'), '#' + params.get('bg')), 500);
+
             return true;
         }
         return false;
