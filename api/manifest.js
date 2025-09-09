@@ -21,6 +21,7 @@ export default async function handler(req, res) {
             display: config.disp || 'standalone',
             background_color: config.bg,
             theme_color: config.th,
+            target_url: config.url, // This is the new, crucial line
             icons: [
                 {
                     src: config.icon,
