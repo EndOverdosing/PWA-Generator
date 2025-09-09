@@ -20,6 +20,10 @@ const formidableParse = (req) =>
     });
 
 export default async function handler(req, res) {
+    if (!process.env.BLOB_READ_WRITE_TOKEN) {
+        return res.status(500).json({ error: 'Storage connection failed: The BLOB_READ_WRITE_TOKEN is not configured in the server environment.' });
+    }
+
     if (req.method !== 'POST') {
         res.setHeader('Allow', 'POST');
         return res.status(405).end('Method Not Allowed');
