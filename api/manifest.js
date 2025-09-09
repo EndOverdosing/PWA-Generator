@@ -1,30 +1,41 @@
-export default function handler(req, res) {
-    const { url, name, s_name, desc, disp, bg, th, icon } = req.query;
+import { kv } from '@vercel/kv';
 
-    if (!name || !icon || !url) {
-        return res.status(400).json({ error: 'Missing required PWA parameters.' });
+export default async function handler(req, res) {
+    const { id } = req.query;
+
+    if (!id) {
+        return res.status(400).json({ error: 'No ID provided.' });
     }
 
-    const startUrl = `/?url=${encodeURIComponent(url)}&name=${encodeURIComponent(name)}&s_name=${encodeURIComponent(s_name)}&desc=${encodeURIComponent(desc)}&disp=${encodeURIComponent(disp)}&bg=${encodeURIComponent(bg)}&th=${encodeURIComponent(th)}&icon=${encodeURIComponent(icon)}`;
+    try {
+        const config = await kv.get(id);
+        if (!config) {
+            return res.status(404).json({ error: 'PWA configuration not found.' });
+        }
+        
+        const manifest = {
+            name: config.name,
+            short_name: config.s_name || config.name,
+            description: config.desc || 'A web application.',
+            start_url: `/?id=${id}`,
+            display: config.disp || 'standalone',
+            background_color: config.bg,
+            theme_color: config.th,
+            icons: [
+                {
+                    src: config.icon,
+                    sizes: '512x512',
+                    type: 'image/png',
+                    purpose: 'any maskable'
+                }
+            ]
+        };
 
-    const manifest = {
-        name: name,
-        short_name: s_name || name,
-        description: desc || 'A web application.',
-        start_url: startUrl,
-        display: disp || 'standalone',
-        background_color: `#${bg}` || '#FFFFFF',
-        theme_color: `#${th}` || '#000000',
-        icons: [
-            {
-                src: icon,
-                sizes: '512x512',
-                type: 'image/png',
-                purpose: 'any maskable'
-            }
-        ]
-    };
+        res.setHeader('Content-Type', 'application/manifest+json');
+        res.status(200).json(manifest);
 
-    res.setHeader('Content-Type', 'application/manifest+json');
-    res.status(200).json(manifest);
+    } catch (error) {
+        console.error('Error fetching manifest config:', error);
+        return res.status(500).json({ error: 'Could not retrieve manifest configuration.' });
+    }
 }
