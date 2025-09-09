@@ -96,8 +96,16 @@ document.addEventListener('DOMContentLoaded', () => {
         genButton.disabled = true;
         genButton.classList.add('loading');
         try {
-            const iconFile = iconUploadInput.files[0];
-            const uploadUrl = `/api/upload?filename=${encodeURIComponent(iconFile.name)}`;
+            let iconFile = iconUploadInput.files[0];
+            const fileNameLower = iconFile.name.toLowerCase();
+
+            if (fileNameLower.endsWith('.heic') || fileNameLower.endsWith('.heif')) {
+                showToast('Converting HEIC image...');
+                const conversionResult = await heic2any({ blob: iconFile, toType: "image/png" });
+                iconFile = Array.isArray(conversionResult) ? conversionResult[0] : conversionResult;
+            }
+
+            const uploadUrl = `/api/upload?filename=${encodeURIComponent(iconFile.name || 'converted.png')}`;
             const response = await fetch(uploadUrl, { method: 'POST', body: iconFile });
             const result = await response.json();
             if (!response.ok) {
