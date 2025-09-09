@@ -307,6 +307,23 @@ body.light-theme .interactive-border::before {
     background: radial-gradient(250px circle at var(--x) var(--y), rgba(0, 0, 0, 0.8), transparent 40%) border-box;
 }
 
+.icon-preview-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: var(--background-color-element);
+    border: 1px solid var(--border-color-subtle);
+    border-radius: var(--border-radius-soft);
+    padding: 0.75rem;
+}
+
+.icon-preview-img {
+    width: 72px;
+    height: 72px;
+    border-radius: 16px;
+    background-color: var(--border-color-subtle);
+}
+
 .select-wrapper {
     position: relative;
     border-radius: var(--border-radius-soft);
@@ -997,7 +1014,7 @@ body.light-theme .copy-link-btn {
 @media (max-width: 640px) {
     main {
         padding-top: 5rem;
-        padding-bottom: 10rem;
+        padding-bottom: 12rem;
         justify-content: flex-start;
         align-items: stretch;
     }
