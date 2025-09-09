@@ -1,4 +1,4 @@
-import { Writable } from 'stream';
+import { put } from '@vercel/blob';
 import formidable from 'formidable';
 import fs from 'fs';
 
@@ -32,13 +32,15 @@ export default async function handler(req, res) {
         }
 
         const fileData = fs.readFileSync(imageFile.filepath);
-        const base64String = fileData.toString('base64');
-        const mimeType = imageFile.mimetype;
-        const dataURI = `data:${mimeType};base64,${base64String}`;
+        
+        const blob = await put(imageFile.originalFilename, fileData, {
+            access: 'public',
+            contentType: imageFile.mimetype,
+        });
 
         fs.unlinkSync(imageFile.filepath);
 
-        return res.status(200).json({ link: dataURI });
+        return res.status(200).json({ link: blob.url });
 
     } catch (error) {
         console.error('Upload error:', error);
