@@ -120,7 +120,7 @@ document.addEventListener('DOMContentLoaded', () => {
             getEl('#copy-link-btn').onclick = () => { getEl('#share-url-input').select(); navigator.clipboard.writeText(shareUrl); showToast('Link copied to clipboard!'); };
         } catch (error) {
             console.error("Error generating share link:", error);
-            const detailedMessage = `Could not generate the link due to an error:<br><br><em>"${error.message}"</em><br><br>Please try again with a smaller icon file (under 4MB).`;
+            const detailedMessage = `Could not generate the link.<br><br><em>"${error.message}"</em><br><br>Please try a different image file.`;
             showCustomAlert(detailedMessage);
             genButton.disabled = false;
             genButton.classList.remove('loading');
