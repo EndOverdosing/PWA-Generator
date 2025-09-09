@@ -1,18 +1,4 @@
 import { kv } from '@vercel/kv';
-import { createCanvas } from 'canvas';
-
-function generateIconPng(letter, bgColor) {
-    const canvas = createCanvas(512, 512);
-    const ctx = canvas.getContext('2d');
-    ctx.fillStyle = bgColor;
-    ctx.fillRect(0, 0, 512, 512);
-    ctx.fillStyle = '#FFFFFF';
-    ctx.font = 'bold 280px "Helvetica Neue", Arial, sans-serif';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(letter.toUpperCase(), 256, 256);
-    return canvas.toDataURL('image/png');
-}
 
 function generateIconSvg(letter, bgColor) {
     const svg = `
@@ -41,8 +27,7 @@ export default async function handler(req, res) {
         }
 
         const firstLetter = (config.name || 'A').trim().charAt(0);
-        const iconPngUrl = generateIconPng(firstLetter, config.iconColor);
-        const iconSvgUrl = generateIconSvg(firstLetter, config.iconColor);
+        const iconDataUrl = generateIconSvg(firstLetter, config.iconColor);
         
         const manifest = {
             name: config.name,
@@ -56,21 +41,15 @@ export default async function handler(req, res) {
             target_url: config.url,
             icons: [
                 {
-                    src: iconPngUrl,
-                    sizes: '512x512',
-                    type: 'image/png',
-                    purpose: 'any'
-                },
-                {
-                    src: iconSvgUrl,
+                    src: iconDataUrl,
                     sizes: '512x512',
                     type: 'image/svg+xml',
-                    purpose: 'any'
+                    purpose: 'any maskable'
                 }
             ]
         };
 
-        res.setHeader('Content-Type', 'application/manifest+json');
+        res.setHeader('Content-Type', 'application/json');
         res.status(200).json(manifest);
 
     } catch (error) {
