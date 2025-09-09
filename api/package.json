@@ -3,5 +3,8 @@
     "version": "1.0.0",
     "description": "PWA-Generator - Website to PWA-Generator",
     "private": true,
-    "dependencies": {}
+    "dependencies": {
+        "@vercel/kv": "^2.0.0",
+        "nanoid": "^5.0.7"
+    }
 }
