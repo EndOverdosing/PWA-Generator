@@ -1,0 +1,9 @@
+{
+    "name": "pwa-forge",
+    "version": "1.0.0",
+    "description": "PWA-Generator - Website to PWA-Generator",
+    "private": true,
+    "dependencies": {
+        "formidable": "^3.5.1"
+    }
+}

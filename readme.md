@@ -1,8 +1,8 @@
-# PWA Forge: Website to PWA Generator
+# PWA-Generator: Website to PWA-Generator
 
 ## Instantly turn any website into a fully customizable and installable Progressive Web App (PWA) with a shareable link.
 
-PWA Forge allows users to transform any website URL into a personalized Progressive Web App without writing a single line of code. Configure app name, colors, display mode, and upload a custom icon. The generated PWA becomes live on a unique path of *your* site, ready to be installed directly from the browser, and can be shared via a persistent URL.
+PWA-Generator allows users to transform any website URL into a personalized Progressive Web App without writing a single line of code. Configure app name, colors, display mode, and upload a custom icon. The generated PWA becomes live on a unique path of *your* site, ready to be installed directly from the browser, and can be shared via a persistent URL.
 
 This project is designed to be self-contained, handling icon uploads via a Vercel Serverless Function, ensuring no external third-party APIs are required for its core functionality.
 
@@ -74,7 +74,7 @@ This project is pre-configured for seamless deployment to [Vercel](https://verce
 1.  **Push to Git:** Push your project to a Git repository (GitHub, GitLab, Bitbucket).
 2.  **Import Project:** Go to your [Vercel Dashboard](https://vercel.com/dashboard) and select "Add New Project." Import your Git repository.
 3.  **Automatic Deployment:** Vercel will automatically detect the `vercel.json` configuration and the serverless function in the `api/` directory. It will build and deploy your application.
-4.  **Live URL:** Once deployed, Vercel will provide you with a live URL where your PWA Forge is accessible.
+4.  **Live URL:** Once deployed, Vercel will provide you with a live URL where your PWA-Generator is accessible.
 
 ## 📝 Usage
 
