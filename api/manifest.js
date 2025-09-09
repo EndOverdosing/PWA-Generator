@@ -1,4 +1,18 @@
 import { kv } from '@vercel/kv';
+import { createCanvas } from 'canvas';
+
+function generateIconPng(letter, bgColor) {
+    const canvas = createCanvas(512, 512);
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = bgColor;
+    ctx.fillRect(0, 0, 512, 512);
+    ctx.fillStyle = '#FFFFFF';
+    ctx.font = 'bold 280px "Helvetica Neue", Arial, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(letter.toUpperCase(), 256, 256);
+    return canvas.toDataURL('image/png');
+}
 
 function generateIconSvg(letter, bgColor) {
     const svg = `
@@ -15,7 +29,6 @@ function generateIconSvg(letter, bgColor) {
 
 export default async function handler(req, res) {
     const { id } = req.query;
-    console.log(`Fetching manifest for ID: ${id}`);
 
     if (!id) {
         return res.status(400).json({ error: 'No ID provided.' });
@@ -23,15 +36,13 @@ export default async function handler(req, res) {
 
     try {
         const config = await kv.get(id);
-        console.log('Retrieved config from KV:', JSON.stringify(config, null, 2));
-
-        if (!config || !config.url) {
-            console.error('Config not found or is invalid (missing URL).');
-            return res.status(404).json({ error: 'PWA configuration not found or is invalid.' });
+        if (!config) {
+            return res.status(404).json({ error: 'PWA configuration not found.' });
         }
 
         const firstLetter = (config.name || 'A').trim().charAt(0);
-        const iconDataUrl = generateIconSvg(firstLetter, config.iconColor);
+        const iconPngUrl = generateIconPng(firstLetter, config.iconColor);
+        const iconSvgUrl = generateIconSvg(firstLetter, config.iconColor);
         
         const manifest = {
             name: config.name,
@@ -45,19 +56,25 @@ export default async function handler(req, res) {
             target_url: config.url,
             icons: [
                 {
-                    src: iconDataUrl,
+                    src: iconPngUrl,
+                    sizes: '512x512',
+                    type: 'image/png',
+                    purpose: 'any'
+                },
+                {
+                    src: iconSvgUrl,
                     sizes: '512x512',
                     type: 'image/svg+xml',
-                    purpose: 'any maskable'
+                    purpose: 'any'
                 }
             ]
         };
 
         res.setHeader('Content-Type', 'application/manifest+json');
-        return res.status(200).json(manifest);
+        res.status(200).json(manifest);
 
     } catch (error) {
-        console.error('Error in /api/manifest:', error);
+        console.error('Error fetching manifest config:', error);
         return res.status(500).json({ error: 'Could not retrieve manifest configuration.' });
     }
 }
