@@ -135,7 +135,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 disp: displayModeInput.value,
                 bg: backgroundColorInput.value,
                 th: themeColorInput.value,
-                icon: iconPreview.src
+                iconColor: iconColorInput.value
             };
 
             const response = await fetch('/api/create', {
