@@ -15,6 +15,7 @@ function generateIconSvg(letter, bgColor) {
 
 export default async function handler(req, res) {
     const { id } = req.query;
+    console.log(`Fetching manifest for ID: ${id}`);
 
     if (!id) {
         return res.status(400).json({ error: 'No ID provided.' });
@@ -22,8 +23,11 @@ export default async function handler(req, res) {
 
     try {
         const config = await kv.get(id);
-        if (!config) {
-            return res.status(404).json({ error: 'PWA configuration not found.' });
+        console.log('Retrieved config from KV:', JSON.stringify(config, null, 2));
+
+        if (!config || !config.url) {
+            console.error('Config not found or is invalid (missing URL).');
+            return res.status(404).json({ error: 'PWA configuration not found or is invalid.' });
         }
 
         const firstLetter = (config.name || 'A').trim().charAt(0);
@@ -50,10 +54,10 @@ export default async function handler(req, res) {
         };
 
         res.setHeader('Content-Type', 'application/manifest+json');
-        res.status(200).json(manifest);
+        return res.status(200).json(manifest);
 
     } catch (error) {
-        console.error('Error fetching manifest config:', error);
+        console.error('Error in /api/manifest:', error);
         return res.status(500).json({ error: 'Could not retrieve manifest configuration.' });
     }
 }
