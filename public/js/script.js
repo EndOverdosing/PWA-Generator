@@ -59,16 +59,13 @@ document.addEventListener('DOMContentLoaded', () => {
             getEl('main').style.display = 'none';
             getEl('footer').style.display = 'none';
             document.title = params.get('name');
-
             const manifestUrl = `/api/manifest${window.location.search}`;
-
             const existingManifest = document.querySelector('link[rel="manifest"]');
             if (existingManifest) existingManifest.remove();
             const manifestLink = document.createElement('link');
             manifestLink.rel = 'manifest';
             manifestLink.href = manifestUrl;
             document.head.appendChild(manifestLink);
-
             if ('serviceWorker' in navigator) {
                 try {
                     await navigator.serviceWorker.register('/sw.js');
@@ -76,7 +73,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     showCustomAlert('Could not initialize the PWA environment.');
                 }
             }
-            
             showToast("PWA is ready! This page is now installable.");
             setTimeout(() => launchPwaWrapper(params.get('url'), '#' + params.get('bg')), 500);
             return true;
@@ -102,12 +98,11 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const formData = new FormData();
             formData.append('image', iconUploadInput.files[0]);
-
             const response = await fetch('/api/upload', { method: 'POST', body: formData });
             const result = await response.json();
-
-            if (!response.ok) throw new Error(result.error || 'Upload failed');
-            
+            if (!response.ok) {
+                throw new Error(result.error || `HTTP error! Status: ${response.status}`);
+            }
             const iconUrl = result.link;
             const params = new URLSearchParams();
             params.set('url', websiteUrlInput.value);
@@ -118,14 +113,15 @@ document.addEventListener('DOMContentLoaded', () => {
             params.set('bg', backgroundColorInput.value.substring(1));
             params.set('th', themeColorInput.value.substring(1));
             params.set('icon', iconUrl);
-
             const shareUrl = `${window.location.origin}${window.location.pathname}?${params.toString()}`;
             genButton.remove();
             getEl('.share-card p').textContent = 'Your shareable link is ready! Anyone visiting this URL will get your configured PWA.';
             getEl('.share-card').innerHTML += `<div class="share-link-result"><input type="text" readonly id="share-url-input" value="${shareUrl}"><button class="copy-link-btn" id="copy-link-btn">Copy</button></div>`;
             getEl('#copy-link-btn').onclick = () => { getEl('#share-url-input').select(); navigator.clipboard.writeText(shareUrl); showToast('Link copied to clipboard!'); };
         } catch (error) {
-            showCustomAlert("Could not generate shareable link. Please try again.");
+            console.error("Error generating share link:", error);
+            const detailedMessage = `Could not generate the link due to an error:<br><br><em>"${error.message}"</em><br><br>Please ensure the Vercel Blob storage is correctly configured in your project settings and try again.`;
+            showCustomAlert(detailedMessage);
             genButton.disabled = false;
             genButton.classList.remove('loading');
         }
