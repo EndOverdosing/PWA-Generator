@@ -96,9 +96,9 @@ document.addEventListener('DOMContentLoaded', () => {
         genButton.disabled = true;
         genButton.classList.add('loading');
         try {
-            const formData = new FormData();
-            formData.append('image', iconUploadInput.files[0]);
-            const response = await fetch('/api/upload', { method: 'POST', body: formData });
+            const iconFile = iconUploadInput.files[0];
+            const uploadUrl = `/api/upload?filename=${encodeURIComponent(iconFile.name)}`;
+            const response = await fetch(uploadUrl, { method: 'POST', body: iconFile });
             const result = await response.json();
             if (!response.ok) {
                 throw new Error(result.error || `HTTP error! Status: ${response.status}`);
@@ -120,7 +120,7 @@ document.addEventListener('DOMContentLoaded', () => {
             getEl('#copy-link-btn').onclick = () => { getEl('#share-url-input').select(); navigator.clipboard.writeText(shareUrl); showToast('Link copied to clipboard!'); };
         } catch (error) {
             console.error("Error generating share link:", error);
-            const detailedMessage = `Could not generate the link due to an error:<br><br><em>"${error.message}"</em><br><br>Please ensure the Vercel Blob storage is correctly configured in your project settings and try again.`;
+            const detailedMessage = `Could not generate the link due to an error:<br><br><em>"${error.message}"</em><br><br>Please try again with a smaller icon file (under 4MB).`;
             showCustomAlert(detailedMessage);
             genButton.disabled = false;
             genButton.classList.remove('loading');
