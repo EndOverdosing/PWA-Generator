@@ -694,7 +694,6 @@ input[type="file"] {
 
 .color-picker-popup {
     position: fixed;
-    /* --- FIX: Increased z-index to ensure it's on top of everything --- */
     z-index: 5000;
     background-color: var(--background-color-element);
     border: 1px solid var(--border-color-subtle);
@@ -1014,7 +1013,6 @@ body.light-theme .copy-link-btn {
 }
 
 @media (max-width: 640px) {
-    /* --- FIX: Add padding to main content to avoid overlap with fixed footer --- */
     main {
         padding-bottom: 6rem;
     }
