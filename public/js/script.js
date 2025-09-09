@@ -68,12 +68,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const themeSwitcher = getEl('#theme-switcher');
         const settingsToggle = getEl('#settings-toggle');
         const settingsContent = getEl('#settings-content');
-        const themeColorPreview = getEl('#themeColorPreview');
-        const backgroundColorPreview = getEl('#backgroundColorPreview');
-        const iconColorPreview = getEl('#iconColorPreview');
-        const themeColorValue = getEl('#themeColorValue');
-        const backgroundColorValue = getEl('#backgroundColorValue');
-        const iconColorValue = getEl('#iconColorValue');
 
         const savePreference = (key, value) => { try { localStorage.setItem(key, value); } catch (e) { console.error(e); } };
         const getPreference = (key) => { try { return localStorage.getItem(key); } catch (e) { return null; } };
@@ -188,28 +182,127 @@ document.addEventListener('DOMContentLoaded', () => {
         if (iconColorInput) iconColorInput.addEventListener('input', generateAndDisplayIcon);
         generateAndDisplayIcon();
 
-        function updateColorUI(input, preview, valueSpan) { const color = input.value.toUpperCase(); preview.style.backgroundColor = color; valueSpan.textContent = color; }
+        function updateColorUI(input, preview, valueSpan) {
+            if (!input || !preview || !valueSpan) return;
+            const color = input.value.toUpperCase();
+            preview.style.backgroundColor = color;
+            valueSpan.textContent = color;
+        }
+
         const colorPickerPopup = document.createElement('div');
         colorPickerPopup.className = 'color-picker-popup';
         colorPickerPopup.innerHTML = `<div class="color-picker-sv-panel"><div class="color-picker-thumb"></div></div><input type="range" min="0" max="360" value="0" class="color-picker-hue-slider">`;
         document.body.appendChild(colorPickerPopup);
-        const svPanel = colorPickerPopup.querySelector('.color-picker-sv-panel'), thumb = colorPickerPopup.querySelector('.color-picker-thumb'), hueSlider = colorPickerPopup.querySelector('.color-picker-hue-slider');
-        let activeColorTarget = null, pickerState = { h: 0, s: 1, v: 1 };
-        function hsvToRgb(h, s, v) { let r, g, b, i, f, p, q, t; i = Math.floor(h * 6); f = h * 6 - i; p = v * (1 - s); q = v * (1 - f * s); t = v * (1 - (1 - f) * s); switch (i % 6) { case 0: r = v, g = t, b = p; break; case 1: r = q, g = v, b = p; break; case 2: r = p, g = v, b = t; break; case 3: r = p, g = q, b = v; break; case 4: r = t, g = p, b = v; break; case 5: r = v, g = p, b = q; break; } return [Math.round(r * 255), Math.round(g * 255), Math.round(b * 255)]; }
-        function rgbToHex(r, g, b) { return "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1).toUpperCase(); }
-        function updatePickerColor() { if (!activeColorTarget) return; const [r, g, b] = hsvToRgb(pickerState.h / 360, pickerState.s, pickerState.v); activeColorTarget.value = rgbToHex(r, g, b); activeColorTarget.dispatchEvent(new Event('input')); }
-        function updateSvPanelBackground() { const [r, g, b] = hsvToRgb(pickerState.h / 360, 1, 1); svPanel.style.backgroundColor = `rgb(${r},${g},${b})`; }
-        function openColorPicker(input) { activeColorTarget = input; const wrapper = input.closest('.color-picker-wrapper'), rect = wrapper.getBoundingClientRect(); colorPickerPopup.classList.add('visible'); colorPickerPopup.style.top = `${window.scrollY + rect.bottom + 8}px`; colorPickerPopup.style.left = `${window.scrollX + rect.left}px`; pickerState = { h: 0, s: 1, v: 1 }; hueSlider.value = pickerState.h; updateSvPanelBackground(); const svRect = svPanel.getBoundingClientRect(); thumb.style.left = `${pickerState.s * svRect.width}px`; thumb.style.top = `${(1 - pickerState.v) * svRect.height}px`; }
-        svPanel.addEventListener('mousedown', (e) => { if (e.button !== 0) return; const onMouseMove = (moveEvent) => { const rect = svPanel.getBoundingClientRect(); let x = Math.max(0, Math.min(rect.width, moveEvent.clientX - rect.left)), y = Math.max(0, Math.min(rect.height, moveEvent.clientY - rect.top)); thumb.style.left = `${x}px`; thumb.style.top = `${y}px`; pickerState.s = x / rect.width; pickerState.v = 1 - (y / rect.height); updatePickerColor(); }; onMouseMove(e); window.addEventListener('mousemove', onMouseMove); window.addEventListener('mouseup', () => window.removeEventListener('mousemove', onMouseMove), { once: true }); });
-        hueSlider.addEventListener('input', () => { pickerState.h = hueSlider.value; updateSvPanelBackground(); updatePickerColor(); });
-        document.addEventListener('click', (e) => { if (colorPickerPopup.classList.contains('visible') && !colorPickerPopup.contains(e.target) && !e.target.closest('.color-picker-wrapper')) { colorPickerPopup.classList.remove('visible'); activeColorTarget = null; } });
-        if (themeColorInput) themeColorInput.addEventListener('input', () => updateColorUI(themeColorInput, themeColorPreview, themeColorValue));
-        if (backgroundColorInput) backgroundColorInput.addEventListener('input', () => updateColorUI(backgroundColorInput, backgroundColorPreview, backgroundColorValue));
-        if (iconColorInput) iconColorInput.addEventListener('input', () => { updateColorUI(iconColorInput, iconColorPreview, iconColorValue); generateAndDisplayIcon(); });
-        updateColorUI(themeColorInput, themeColorPreview, themeColorValue);
-        updateColorUI(backgroundColorInput, backgroundColorPreview, backgroundColorValue);
-        updateColorUI(iconColorInput, iconColorPreview, iconColorValue);
-        [themeColorInput, backgroundColorInput, iconColorInput].forEach(input => { if (!input) return; const wrapper = input.closest('.color-picker-wrapper'); if (wrapper) wrapper.addEventListener('click', () => { if (colorPickerPopup.classList.contains('visible') && activeColorTarget === input) { colorPickerPopup.classList.remove('visible'); activeColorTarget = null; } else { openColorPicker(input); } }); });
+
+        const svPanel = colorPickerPopup.querySelector('.color-picker-sv-panel');
+        const thumb = colorPickerPopup.querySelector('.color-picker-thumb');
+        const hueSlider = colorPickerPopup.querySelector('.color-picker-hue-slider');
+
+        let activeColorTarget = null;
+        let pickerState = { h: 0, s: 1, v: 1 };
+
+        const hsvToRgb = (h, s, v) => { let f = (n, k = (n + h / 60) % 6) => v - v * s * Math.max(Math.min(k, 4 - k, 1), 0); return [f(5) * 255, f(3) * 255, f(1) * 255]; };
+        const rgbToHex = (r, g, b) => "#" + [r, g, b].map(x => Math.round(x).toString(16).padStart(2, '0')).join('').toUpperCase();
+        const hexToRgb = (hex) => { let r = 0, g = 0, b = 0; if (hex.length == 4) { r = parseInt(hex[1] + hex[1], 16); g = parseInt(hex[2] + hex[2], 16); b = parseInt(hex[3] + hex[3], 16); } else if (hex.length == 7) { r = parseInt(hex[1] + hex[2], 16); g = parseInt(hex[3] + hex[4], 16); b = parseInt(hex[5] + hex[6], 16); } return [r, g, b]; };
+        const rgbToHsv = (r, g, b) => { r /= 255; g /= 255; b /= 255; let max = Math.max(r, g, b), min = Math.min(r, g, b), h, s, v = max, d = max - min; s = max == 0 ? 0 : d / max; if (max == min) { h = 0; } else { switch (max) { case r: h = (g - b) / d + (g < b ? 6 : 0); break; case g: h = (b - r) / d + 2; break; case b: h = (r - g) / d + 4; break; } h /= 6; } return [h * 360, s, v]; };
+
+        function updatePickerColor() {
+            if (!activeColorTarget) return;
+            const [r, g, b] = hsvToRgb(pickerState.h, pickerState.s, pickerState.v);
+            activeColorTarget.value = rgbToHex(r, g, b);
+            activeColorTarget.dispatchEvent(new Event('input'));
+        }
+
+        function updateSvPanelBackground() {
+            const [r, g, b] = hsvToRgb(pickerState.h, 1, 1);
+            svPanel.style.backgroundColor = `rgb(${r},${g},${b})`;
+        }
+
+        function openColorPicker(input) {
+            activeColorTarget = input;
+            const wrapper = input.closest('.color-picker-wrapper');
+            const rect = wrapper.getBoundingClientRect();
+            
+            const [r, g, b] = hexToRgb(input.value);
+            const [h, s, v] = rgbToHsv(r, g, b);
+            pickerState = { h, s, v };
+            
+            hueSlider.value = pickerState.h;
+            updateSvPanelBackground();
+            
+            colorPickerPopup.classList.add('visible');
+            const popupRect = colorPickerPopup.getBoundingClientRect();
+            const svRect = svPanel.getBoundingClientRect();
+            
+            thumb.style.left = `${pickerState.s * svRect.width}px`;
+            thumb.style.top = `${(1 - pickerState.v) * svRect.height}px`;
+
+            let top = window.scrollY + rect.bottom + 8;
+            let left = window.scrollX + rect.left;
+
+            if (top + popupRect.height > window.innerHeight + window.scrollY) {
+                top = window.scrollY + rect.top - popupRect.height - 8;
+            }
+            if (left + popupRect.width > window.innerWidth + window.scrollX) {
+                left = window.scrollX + rect.right - popupRect.width;
+            }
+
+            colorPickerPopup.style.top = `${top}px`;
+            colorPickerPopup.style.left = `${left}px`;
+        }
+
+        svPanel.addEventListener('mousedown', (e) => {
+            if (e.button !== 0) return;
+            const onMouseMove = (moveEvent) => {
+                const rect = svPanel.getBoundingClientRect();
+                let x = Math.max(0, Math.min(rect.width, moveEvent.clientX - rect.left));
+                let y = Math.max(0, Math.min(rect.height, moveEvent.clientY - rect.top));
+                thumb.style.left = `${x}px`;
+                thumb.style.top = `${y}px`;
+                pickerState.s = x / rect.width;
+                pickerState.v = 1 - (y / rect.height);
+                updatePickerColor();
+            };
+            onMouseMove(e);
+            window.addEventListener('mousemove', onMouseMove);
+            window.addEventListener('mouseup', () => window.removeEventListener('mousemove', onMouseMove), { once: true });
+        });
+
+        hueSlider.addEventListener('input', () => {
+            pickerState.h = hueSlider.value;
+            updateSvPanelBackground();
+            updatePickerColor();
+        });
+
+        document.addEventListener('click', (e) => {
+            if (colorPickerPopup.classList.contains('visible') && !colorPickerPopup.contains(e.target) && !e.target.closest('.color-picker-wrapper')) {
+                colorPickerPopup.classList.remove('visible');
+                activeColorTarget = null;
+            }
+        });
+
+        [themeColorInput, backgroundColorInput, iconColorInput].forEach(input => {
+            if (!input) return;
+            const wrapper = input.closest('.color-picker-wrapper');
+            const preview = wrapper.querySelector('.color-preview-swatch');
+            const valueSpan = wrapper.querySelector('.color-value');
+            
+            updateColorUI(input, preview, valueSpan);
+            input.addEventListener('input', () => updateColorUI(input, preview, valueSpan));
+            
+            if (input === iconColorInput) {
+                input.addEventListener('input', generateAndDisplayIcon);
+            }
+
+            if (wrapper) wrapper.addEventListener('click', (e) => {
+                if (colorPickerPopup.classList.contains('visible') && activeColorTarget === input) {
+                    colorPickerPopup.classList.remove('visible');
+                    activeColorTarget = null;
+                } else {
+                    openColorPicker(input);
+                }
+            });
+        });
     }
 
     const params = new URLSearchParams(window.location.search);
