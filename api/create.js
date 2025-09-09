@@ -13,7 +13,7 @@ export default async function handler(req, res) {
     try {
         const config = req.body;
 
-        if (!config || !config.url || !config.name || !config.icon) {
+        if (!config || !config.url || !config.name || !config.iconColor) {
             return res.status(400).json({ error: 'Missing required configuration data.' });
         }
 
@@ -22,8 +22,8 @@ export default async function handler(req, res) {
 
         return res.status(200).json({ id });
 
-    } catch (error) {
+    } catch (error)
         console.error('Error creating PWA config:', error);
-        return res.status(500).json({ error: 'Could not save the PWA configuration.' });
+        return res.status(500).json({ error: error.message || 'Could not save the PWA configuration.' });
     }
 }
