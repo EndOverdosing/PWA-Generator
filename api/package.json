@@ -3,9 +3,5 @@
     "version": "1.0.0",
     "description": "PWA-Generator - Website to PWA-Generator",
     "private": true,
-    "dependencies": {
-        "@vercel/blob": "^0.23.4",
-        "heic2any": "^0.0.4",
-        "sharp": "^0.33.4"
-    }
+    "dependencies": {}
 }
