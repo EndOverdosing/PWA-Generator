@@ -1,17 +1,16 @@
 import { kv } from '@vercel/kv';
-import { createCanvas } from 'canvas';
 
-function generateIcon(letter, bgColor) {
-    const canvas = createCanvas(512, 512);
-    const ctx = canvas.getContext('2d');
-    ctx.fillStyle = bgColor;
-    ctx.fillRect(0, 0, 512, 512);
-    ctx.fillStyle = '#FFFFFF';
-    ctx.font = 'bold 280px "Helvetica Neue", Arial, sans-serif';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(letter.toUpperCase(), 256, 256);
-    return canvas.toDataURL('image/png');
+function generateIconSvg(letter, bgColor) {
+    const svg = `
+        <svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+            <rect width="512" height="512" fill="${bgColor}"/>
+            <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle"
+                  fill="#FFFFFF" font-family="'Helvetica Neue', Arial, sans-serif" font-size="280" font-weight="bold">
+                ${letter.toUpperCase()}
+            </text>
+        </svg>
+    `;
+    return `data:image/svg+xml;base64,${Buffer.from(svg).toString('base64')}`;
 }
 
 export default async function handler(req, res) {
@@ -28,7 +27,7 @@ export default async function handler(req, res) {
         }
 
         const firstLetter = (config.name || 'A').trim().charAt(0);
-        const iconDataUrl = generateIcon(firstLetter, config.iconColor);
+        const iconDataUrl = generateIconSvg(firstLetter, config.iconColor);
         
         const manifest = {
             name: config.name,
@@ -44,7 +43,7 @@ export default async function handler(req, res) {
                 {
                     src: iconDataUrl,
                     sizes: '512x512',
-                    type: 'image/png',
+                    type: 'image/svg+xml',
                     purpose: 'any maskable'
                 }
             ]
