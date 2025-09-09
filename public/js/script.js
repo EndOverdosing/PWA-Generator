@@ -4,7 +4,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const settingsToggle = getEl('#settings-toggle');
     const settingsContent = getEl('#settings-content');
     const pwaForm = getEl('#pwa-form');
-    const submitButton = getEl('#submit-button');
     const shareContainer = getEl('#share-container');
     const websiteUrlInput = getEl('#websiteUrl-input');
     const appNameInput = getEl('#appName');
@@ -13,12 +12,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const themeColorInput = getEl('#themeColor');
     const backgroundColorInput = getEl('#backgroundColor');
     const displayModeInput = getEl('#displayMode');
-    const iconUploadInput = getEl('#iconUpload');
+    const iconColorInput = getEl('#iconColor');
+    const iconPreview = getEl('#iconPreview');
     const themeColorPreview = getEl('#themeColorPreview');
     const backgroundColorPreview = getEl('#backgroundColorPreview');
+    const iconColorPreview = getEl('#iconColorPreview');
     const themeColorValue = getEl('#themeColorValue');
     const backgroundColorValue = getEl('#backgroundColorValue');
-    const fileUploadText = getEl('#file-upload-text');
+    const iconColorValue = getEl('#iconColorValue');
     const savePreference = (key, value) => { try { localStorage.setItem(key, value); } catch (e) { console.error(e); } };
     const getPreference = (key) => { try { return localStorage.getItem(key); } catch (e) { return null; } };
     function applyTheme(theme) { document.body.classList.toggle('light-theme', theme === 'light'); }
@@ -45,13 +46,39 @@ document.addEventListener('DOMContentLoaded', () => {
     document.addEventListener('click', (e) => { if (colorPickerPopup.classList.contains('visible') && !colorPickerPopup.contains(e.target) && !e.target.closest('.color-picker-wrapper')) { colorPickerPopup.classList.remove('visible'); activeColorTarget = null; } });
     themeColorInput.addEventListener('input', () => updateColorUI(themeColorInput, themeColorPreview, themeColorValue));
     backgroundColorInput.addEventListener('input', () => updateColorUI(backgroundColorInput, backgroundColorPreview, backgroundColorValue));
+    iconColorInput.addEventListener('input', () => { updateColorUI(iconColorInput, iconColorPreview, iconColorValue); generateAndDisplayIcon(); });
     updateColorUI(themeColorInput, themeColorPreview, themeColorValue);
     updateColorUI(backgroundColorInput, backgroundColorPreview, backgroundColorValue);
-    [themeColorInput, backgroundColorInput].forEach(input => { const wrapper = input.closest('.color-picker-wrapper'); wrapper.addEventListener('click', () => { if (colorPickerPopup.classList.contains('visible') && activeColorTarget === input) { colorPickerPopup.classList.remove('visible'); activeColorTarget = null; } else { openColorPicker(input); } }); });
-    iconUploadInput.addEventListener('change', () => { if (iconUploadInput.files.length > 0) { fileUploadText.textContent = iconUploadInput.files[0].name; fileUploadText.style.color = 'var(--primary-text-color)'; } else { fileUploadText.textContent = 'No file chosen...'; fileUploadText.style.color = 'var(--muted-text-color)'; } });
+    updateColorUI(iconColorInput, iconColorPreview, iconColorValue);
+    [themeColorInput, backgroundColorInput, iconColorInput].forEach(input => { const wrapper = input.closest('.color-picker-wrapper'); wrapper.addEventListener('click', () => { if (colorPickerPopup.classList.contains('visible') && activeColorTarget === input) { colorPickerPopup.classList.remove('visible'); activeColorTarget = null; } else { openColorPicker(input); } }); });
     const alertContainer = getEl('#custom-alert-container');
     function showToast(message) { const toast = getEl('#toast-notification'); toast.innerHTML = `<i class="fa-solid fa-check-double"></i> ${message}`; toast.classList.remove('hidden'); setTimeout(() => toast.classList.add('visible'), 10); setTimeout(() => { toast.classList.remove('visible'); setTimeout(() => toast.classList.add('hidden'), 500); }, 4000); }
     function showCustomAlert(message) { alertContainer.innerHTML = `<div class="custom-alert-card interactive-border"><h3><i class="fa-solid fa-circle-exclamation"></i> Attention</h3><p>${message}</p><button class="custom-alert-close-btn">Okay</button></div>`; alertContainer.classList.remove('hidden'); setTimeout(() => alertContainer.classList.add('visible'), 10); const closeBtn = alertContainer.querySelector('.custom-alert-close-btn'), alertCard = alertContainer.querySelector('.custom-alert-card'); const closeAlert = () => { alertContainer.classList.remove('visible'); setTimeout(() => alertContainer.classList.add('hidden'), 300); }; closeBtn.onclick = closeAlert; alertContainer.onclick = (e) => { if (e.target === alertContainer) closeAlert(); }; alertCard.addEventListener('mousemove', e => { const rect = alertCard.getBoundingClientRect(); alertCard.style.setProperty('--x', `${e.clientX - rect.left}px`); alertCard.style.setProperty('--y', `${e.clientY - rect.top}px`); alertCard.style.setProperty('--opacity', '1'); }); alertCard.addEventListener('mouseleave', () => alertCard.style.setProperty('--opacity', '0')); }
+
+    function generateIcon(letter, bgColor) {
+        const canvas = document.createElement('canvas');
+        canvas.width = 512;
+        canvas.height = 512;
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = bgColor;
+        ctx.fillRect(0, 0, 512, 512);
+        ctx.fillStyle = '#FFFFFF';
+        ctx.font = 'bold 280px "Helvetica Neue", Arial, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(letter.toUpperCase(), 256, 256);
+        return canvas.toDataURL('image/png');
+    }
+
+    function generateAndDisplayIcon() {
+        const appName = appNameInput.value || 'A';
+        const firstLetter = appName.trim().charAt(0) || 'A';
+        const iconBgColor = iconColorInput.value;
+        const iconDataUrl = generateIcon(firstLetter, iconBgColor);
+        iconPreview.src = iconDataUrl;
+    }
+
+    appNameInput.addEventListener('input', generateAndDisplayIcon);
 
     async function initializeFromUrlParams() {
         const params = new URLSearchParams(window.location.search);
@@ -82,8 +109,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     pwaForm.addEventListener('submit', async (e) => {
         e.preventDefault();
-        if (!websiteUrlInput.value || !appNameInput.value || !iconUploadInput.files[0]) {
-            showCustomAlert('Please fill out all required fields, including the URL, App Name, and Icon.');
+        if (!websiteUrlInput.value || !appNameInput.value) {
+            showCustomAlert('Please fill out all required fields, including the URL and App Name.');
             return;
         }
         shareContainer.classList.remove('hidden');
@@ -91,73 +118,19 @@ document.addEventListener('DOMContentLoaded', () => {
         getEl('#generate-link-btn').onclick = handleShareLinkGeneration;
     });
 
-    function processImageForUpload(file) {
-        return new Promise((resolve, reject) => {
-            const MAX_DIMENSION = 1024;
-            const objectUrl = URL.createObjectURL(file);
-            const img = new Image();
-            img.onload = () => {
-                let width = img.width;
-                let height = img.height;
-                if (width > MAX_DIMENSION || height > MAX_DIMENSION) {
-                    if (width > height) {
-                        height = Math.round((height * MAX_DIMENSION) / width);
-                        width = MAX_DIMENSION;
-                    } else {
-                        width = Math.round((width * MAX_DIMENSION) / height);
-                        height = MAX_DIMENSION;
-                    }
-                }
-                const canvas = document.createElement('canvas');
-                canvas.width = width;
-                canvas.height = height;
-                const ctx = canvas.getContext('2d');
-                ctx.drawImage(img, 0, 0, width, height);
-                canvas.toBlob((blob) => {
-                    URL.revokeObjectURL(objectUrl);
-                    if (blob) {
-                        resolve(new File([blob], "processed_image.png", { type: 'image/png' }));
-                    } else {
-                        reject(new Error("Failed to create blob from canvas."));
-                    }
-                }, 'image/png', 0.92);
-            };
-            img.onerror = () => {
-                URL.revokeObjectURL(objectUrl);
-                reject(new Error("The selected image could not be loaded. It may be corrupted."));
-            };
-            img.src = objectUrl;
-        });
-    }
-
     async function handleShareLinkGeneration() {
         const genButton = getEl('#generate-link-btn');
         genButton.disabled = true;
         genButton.classList.add('loading');
         try {
-            let iconFile = iconUploadInput.files[0];
-            const fileNameLower = iconFile.name.toLowerCase();
-
-            if (fileNameLower.endsWith('.heic') || fileNameLower.endsWith('.heif')) {
-                showToast('Converting HEIC image...');
-                const conversionResult = await heic2any({ blob: iconFile, toType: "image/png" });
-                iconFile = Array.isArray(conversionResult) ? conversionResult[0] : conversionResult;
+            const iconUrl = iconPreview.src;
+            if (!iconUrl) {
+                throw new Error("Icon has not been generated yet.");
             }
-
-            showToast('Optimizing image...');
-            const processedFile = await processImageForUpload(iconFile);
-
-            const uploadUrl = `/api/upload?filename=${encodeURIComponent(processedFile.name)}`;
-            const response = await fetch(uploadUrl, { method: 'POST', body: processedFile });
-            const result = await response.json();
-            if (!response.ok) {
-                throw new Error(result.error || `HTTP error! Status: ${response.status}`);
-            }
-            const iconUrl = result.link;
             const params = new URLSearchParams();
             params.set('url', websiteUrlInput.value);
             params.set('name', appNameInput.value);
-            params.set('s_name', shortNameInput.value);
+            params.set('s_name', shortNameInput.value || appNameInput.value);
             params.set('desc', descriptionInput.value);
             params.set('disp', displayModeInput.value);
             params.set('bg', backgroundColorInput.value.substring(1));
@@ -170,8 +143,7 @@ document.addEventListener('DOMContentLoaded', () => {
             getEl('#copy-link-btn').onclick = () => { getEl('#share-url-input').select(); navigator.clipboard.writeText(shareUrl); showToast('Link copied to clipboard!'); };
         } catch (error) {
             console.error("Error generating share link:", error);
-            const detailedMessage = `Could not process the uploaded image.<br><br>The file may be corrupted or in an unsupported format. Please try another image.`;
-            showCustomAlert(detailedMessage);
+            showCustomAlert(`Could not generate the link.<br><br><em>"${error.message}"</em>`);
             genButton.disabled = false;
             genButton.classList.remove('loading');
         }
@@ -193,8 +165,13 @@ document.addEventListener('DOMContentLoaded', () => {
         document.addEventListener(moveEvent, (e) => { if (!isDragging) return; wasDragged = true; e.preventDefault(); const event = isTouchDevice ? e.touches[0] : e; let newX = event.clientX - offset.x, newY = event.clientY - offset.y; const maxX = window.innerWidth - backBtn.offsetWidth, maxY = window.innerHeight - backBtn.offsetHeight; newX = Math.max(0, Math.min(newX, maxX)); newY = Math.max(0, Math.min(newY, maxY)); backBtn.style.left = `${newX}px`; backBtn.style.top = `${newY}px`; }, { passive: false });
         document.addEventListener(endEvent, () => { if (isDragging) { isDragging = false; backBtn.style.cursor = 'grab'; } });
     }
-    
+
     document.querySelectorAll('.select-wrapper').forEach(setupCustomSelect);
     function setupCustomSelect(wrapper) { const nativeSelect = wrapper.querySelector('select'); nativeSelect.style.display = 'none'; const customSelect = document.createElement('div'); customSelect.className = 'custom-select'; wrapper.appendChild(customSelect); const trigger = document.createElement('div'); trigger.className = 'custom-select__trigger'; const triggerSpan = document.createElement('span'); trigger.appendChild(triggerSpan); customSelect.appendChild(trigger); const options = document.createElement('div'); options.className = 'custom-options'; customSelect.appendChild(options); const updateSelection = () => { const selectedOption = Array.from(nativeSelect.options).find(opt => opt.selected); triggerSpan.textContent = selectedOption.textContent; Array.from(options.children).forEach(optEl => { optEl.classList.toggle('selected', optEl.dataset.value === selectedOption.value); }); }; Array.from(nativeSelect.options).forEach(option => { const customOption = document.createElement('div'); customOption.className = 'custom-option'; customOption.textContent = option.textContent; customOption.dataset.value = option.value; options.appendChild(customOption); customOption.addEventListener('click', () => { nativeSelect.value = option.value; nativeSelect.dispatchEvent(new Event('change')); customSelect.classList.remove('open'); updateSelection(); }); }); trigger.addEventListener('click', () => customSelect.classList.toggle('open')); document.addEventListener('click', (e) => { if (!customSelect.contains(e.target)) customSelect.classList.remove('open'); }); nativeSelect.addEventListener('change', updateSelection); updateSelection(); }
-    initializeFromUrlParams();
+    
+    initializeFromUrlParams().then(isPwaMode => {
+        if (!isPwaMode) {
+            generateAndDisplayIcon();
+        }
+    });
 });
