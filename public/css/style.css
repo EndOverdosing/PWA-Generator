@@ -1019,12 +1019,14 @@ body.light-theme .copy-link-btn {
         align-items: stretch;
     }
 
-    .main-content-wrapper {
-        gap: 1.25rem;
-        width: 100%;
-        max-width: none;
-        padding: 0 1rem;
-    }
+.main-content-wrapper {
+    width: 100%;
+    max-width: 620px;
+    display: flex;
+    flex-direction: column;
+    gap: 1.75rem;
+    z-index: 2;
+}
 
     .format-options {
         grid-template-columns: 1fr;
