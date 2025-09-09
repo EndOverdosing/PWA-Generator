@@ -1,4 +1,18 @@
 import { kv } from '@vercel/kv';
+import { createCanvas } from 'canvas';
+
+function generateIcon(letter, bgColor) {
+    const canvas = createCanvas(512, 512);
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = bgColor;
+    ctx.fillRect(0, 0, 512, 512);
+    ctx.fillStyle = '#FFFFFF';
+    ctx.font = 'bold 280px "Helvetica Neue", Arial, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(letter.toUpperCase(), 256, 256);
+    return canvas.toDataURL('image/png');
+}
 
 export default async function handler(req, res) {
     const { id } = req.query;
@@ -12,6 +26,9 @@ export default async function handler(req, res) {
         if (!config) {
             return res.status(404).json({ error: 'PWA configuration not found.' });
         }
+
+        const firstLetter = (config.name || 'A').trim().charAt(0);
+        const iconDataUrl = generateIcon(firstLetter, config.iconColor);
         
         const manifest = {
             name: config.name,
@@ -21,10 +38,10 @@ export default async function handler(req, res) {
             display: config.disp || 'standalone',
             background_color: config.bg,
             theme_color: config.th,
-            target_url: config.url, // This is the new, crucial line
+            target_url: config.url,
             icons: [
                 {
-                    src: config.icon,
+                    src: iconDataUrl,
                     sizes: '512x512',
                     type: 'image/png',
                     purpose: 'any maskable'
