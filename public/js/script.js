@@ -149,10 +149,24 @@ document.addEventListener('DOMContentLoaded', () => {
         pwaWrapperView.innerHTML = '';
         pwaWrapperView.appendChild(iframe);
     }
+    
+    function registerServiceWorker() {
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js').then(registration => {
+                    console.log('ServiceWorker registration successful with scope: ', registration.scope);
+                }, err => {
+                    console.log('ServiceWorker registration failed: ', err);
+                });
+            });
+        }
+    }
 
     async function initializePage() {
         const params = new URLSearchParams(window.location.search);
         const pwaId = params.get('id');
+
+        registerServiceWorker();
 
         if (pwaId) {
             try {
