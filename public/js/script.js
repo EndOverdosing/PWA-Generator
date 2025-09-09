@@ -81,7 +81,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
             });
         }
-        initializeInteractiveEffects();
 
         const pwaForm = getEl('#pwa-form');
         const appNameInput = getEl('#appName');
@@ -247,7 +246,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const [r, g, b] = hsvToRgb(pickerState.h, 1, 1);
             svPanel.style.backgroundColor = `rgb(${r},${g},${b})`;
         }
-        
+
         function openColorPicker(input) {
             activeColorTarget = input;
             const wrapper = input.closest('.color-picker-wrapper');
@@ -273,9 +272,9 @@ document.addEventListener('DOMContentLoaded', () => {
             if (left + popupRect.width > window.innerWidth) {
                 left = rect.right - popupRect.width;
             }
-            
-            if (top < 8) top = 8;
-            if (left < 8) left = 8;
+
+            top = Math.max(8, top);
+            left = Math.max(8, left);
             
             colorPickerPopup.style.top = `${top}px`;
             colorPickerPopup.style.left = `${left}px`;
@@ -338,6 +337,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             });
         });
+        
+        initializeInteractiveEffects();
     }
 
     const params = new URLSearchParams(window.location.search);
