@@ -1,6 +1,8 @@
 import { put } from '@vercel/blob';
 import formidable from 'formidable';
 import fs from 'fs';
+import path from 'path';
+import crypto from 'crypto';
 
 export const config = {
     api: {
@@ -32,8 +34,12 @@ export default async function handler(req, res) {
         }
 
         const fileData = fs.readFileSync(imageFile.filepath);
+        const originalFilename = imageFile.originalFilename || 'upload.png';
+        const fileExtension = path.extname(originalFilename);
+        const randomString = crypto.randomBytes(8).toString('hex');
+        const safeFilename = `${Date.now()}-${randomString}${fileExtension}`;
         
-        const blob = await put(imageFile.originalFilename, fileData, {
+        const blob = await put(safeFilename, fileData, {
             access: 'public',
             contentType: imageFile.mimetype,
         });
