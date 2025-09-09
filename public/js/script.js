@@ -82,29 +82,28 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function initializeFromUrlParams() {
         const params = new URLSearchParams(window.location.search);
-        if (params.has('url') && params.has('name') && params.has('icon')) {
-            getEl('main').style.display = 'none';
-            getEl('footer').style.display = 'none';
-            document.title = params.get('name');
-            const manifestUrl = `/api/manifest${window.location.search}`;
-            const existingManifest = document.querySelector('link[rel="manifest"]');
-            if (existingManifest) existingManifest.remove();
+        const pwaId = params.get('id');
+        if (pwaId) {
+            document.body.classList.add('pwa-mode');
+            const manifestUrl = `/api/manifest?id=${pwaId}`;
+            const response = await fetch(manifestUrl);
+            if (!response.ok) {
+                document.body.innerHTML = `<h1>PWA Not Found</h1><p>The configuration for this PWA could not be found. It may have expired or been deleted.</p>`;
+                return;
+            }
+            const manifest = await response.json();
+            document.title = manifest.name;
+            document.body.style.backgroundColor = manifest.background_color;
+
             const manifestLink = document.createElement('link');
             manifestLink.rel = 'manifest';
             manifestLink.href = manifestUrl;
             document.head.appendChild(manifestLink);
-            if ('serviceWorker' in navigator) {
-                try {
-                    await navigator.serviceWorker.register('/sw.js');
-                } catch (error) {
-                    showCustomAlert('Could not initialize the PWA environment.');
-                }
-            }
-            showToast("PWA is ready! This page is now installable.");
-            setTimeout(() => launchPwaWrapper(params.get('url'), '#' + params.get('bg')), 500);
-            return true;
+            
+            launchPwaWrapper(manifest.start_url.split('?url=')[1]);
+        } else {
+             generateAndDisplayIcon();
         }
-        return false;
     }
 
     pwaForm.addEventListener('submit', async (e) => {
@@ -123,20 +122,27 @@ document.addEventListener('DOMContentLoaded', () => {
         genButton.disabled = true;
         genButton.classList.add('loading');
         try {
-            const iconUrl = iconPreview.src;
-            if (!iconUrl) {
-                throw new Error("Icon has not been generated yet.");
-            }
-            const params = new URLSearchParams();
-            params.set('url', websiteUrlInput.value);
-            params.set('name', appNameInput.value);
-            params.set('s_name', shortNameInput.value || appNameInput.value);
-            params.set('desc', descriptionInput.value);
-            params.set('disp', displayModeInput.value);
-            params.set('bg', backgroundColorInput.value.substring(1));
-            params.set('th', themeColorInput.value.substring(1));
-            params.set('icon', iconUrl);
-            const shareUrl = `${window.location.origin}${window.location.pathname}?${params.toString()}`;
+            const config = {
+                url: websiteUrlInput.value,
+                name: appNameInput.value,
+                s_name: shortNameInput.value || appNameInput.value,
+                desc: descriptionInput.value,
+                disp: displayModeInput.value,
+                bg: backgroundColorInput.value,
+                th: themeColorInput.value,
+                icon: iconPreview.src
+            };
+
+            const response = await fetch('/api/create', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(config)
+            });
+            
+            const result = await response.json();
+            if (!response.ok) throw new Error(result.error);
+
+            const shareUrl = `${window.location.origin}/?id=${result.id}`;
             genButton.remove();
             getEl('.share-card p').textContent = 'Your shareable link is ready! Anyone visiting this URL will get your configured PWA.';
             getEl('.share-card').innerHTML += `<div class="share-link-result"><input type="text" readonly id="share-url-input" value="${shareUrl}"><button class="copy-link-btn" id="copy-link-btn">Copy</button></div>`;
@@ -149,29 +155,17 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    function launchPwaWrapper(url, bgColor) {
+    function launchPwaWrapper(targetUrl) {
         const pwaWrapperView = getEl('#pwa-wrapper-view');
-        document.body.style.overflow = 'hidden';
-        document.querySelectorAll('main, footer, .theme-switcher, .blurry-orbs').forEach(el => el.classList.add('hidden'));
-        pwaWrapperView.style.backgroundColor = bgColor;
-        pwaWrapperView.classList.remove('hidden');
-        pwaWrapperView.innerHTML = `<iframe id="pwa-iframe" src="${url}" sandbox="allow-forms allow-modals allow-pointer-lock allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-top-navigation"></iframe><div id="draggable-back-btn" title="Exit PWA View"><i class="fa-solid fa-xmark"></i></div>`;
-        const backBtn = pwaWrapperView.querySelector('#draggable-back-btn');
-        const isTouchDevice = 'ontouchstart' in window;
-        const startEvent = isTouchDevice ? 'touchstart' : 'mousedown', moveEvent = isTouchDevice ? 'touchmove' : 'mousemove', endEvent = isTouchDevice ? 'touchend' : 'mouseup';
-        let isDragging = false, wasDragged = false, offset = { x: 0, y: 0 };
-        backBtn.addEventListener('click', (e) => { if (wasDragged) { e.preventDefault(); e.stopPropagation(); } else { window.location.href = window.location.origin + window.location.pathname; } }, true);
-        backBtn.addEventListener(startEvent, (e) => { isDragging = true; wasDragged = false; const event = isTouchDevice ? e.touches[0] : e; const rect = backBtn.getBoundingClientRect(); offset.x = event.clientX - rect.left; offset.y = event.clientY - rect.top; backBtn.style.cursor = 'grabbing'; });
-        document.addEventListener(moveEvent, (e) => { if (!isDragging) return; wasDragged = true; e.preventDefault(); const event = isTouchDevice ? e.touches[0] : e; let newX = event.clientX - offset.x, newY = event.clientY - offset.y; const maxX = window.innerWidth - backBtn.offsetWidth, maxY = window.innerHeight - backBtn.offsetHeight; newX = Math.max(0, Math.min(newX, maxX)); newY = Math.max(0, Math.min(newY, maxY)); backBtn.style.left = `${newX}px`; backBtn.style.top = `${newY}px`; }, { passive: false });
-        document.addEventListener(endEvent, () => { if (isDragging) { isDragging = false; backBtn.style.cursor = 'grab'; } });
+        const iframe = document.createElement('iframe');
+        iframe.id = 'pwa-iframe';
+        iframe.src = targetUrl;
+        iframe.sandbox = "allow-forms allow-modals allow-pointer-lock allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-top-navigation";
+        pwaWrapperView.appendChild(iframe);
     }
 
     document.querySelectorAll('.select-wrapper').forEach(setupCustomSelect);
     function setupCustomSelect(wrapper) { const nativeSelect = wrapper.querySelector('select'); nativeSelect.style.display = 'none'; const customSelect = document.createElement('div'); customSelect.className = 'custom-select'; wrapper.appendChild(customSelect); const trigger = document.createElement('div'); trigger.className = 'custom-select__trigger'; const triggerSpan = document.createElement('span'); trigger.appendChild(triggerSpan); customSelect.appendChild(trigger); const options = document.createElement('div'); options.className = 'custom-options'; customSelect.appendChild(options); const updateSelection = () => { const selectedOption = Array.from(nativeSelect.options).find(opt => opt.selected); triggerSpan.textContent = selectedOption.textContent; Array.from(options.children).forEach(optEl => { optEl.classList.toggle('selected', optEl.dataset.value === selectedOption.value); }); }; Array.from(nativeSelect.options).forEach(option => { const customOption = document.createElement('div'); customOption.className = 'custom-option'; customOption.textContent = option.textContent; customOption.dataset.value = option.value; options.appendChild(customOption); customOption.addEventListener('click', () => { nativeSelect.value = option.value; nativeSelect.dispatchEvent(new Event('change')); customSelect.classList.remove('open'); updateSelection(); }); }); trigger.addEventListener('click', () => customSelect.classList.toggle('open')); document.addEventListener('click', (e) => { if (!customSelect.contains(e.target)) customSelect.classList.remove('open'); }); nativeSelect.addEventListener('change', updateSelection); updateSelection(); }
     
-    initializeFromUrlParams().then(isPwaMode => {
-        if (!isPwaMode) {
-            generateAndDisplayIcon();
-        }
-    });
+    initializeFromUrlParams();
 });
