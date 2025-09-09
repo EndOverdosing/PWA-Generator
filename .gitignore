@@ -1,1 +1,4 @@
 .vercel
+.uploads
+.uploads/*
+.node_modules
