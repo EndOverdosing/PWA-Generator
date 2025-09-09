@@ -135,7 +135,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('/sw.js').then(registration => {
-                    console.log('ServiceWorker registration successful');
                 }, err => {
                     console.error('ServiceWorker registration failed: ', err);
                 });
@@ -153,7 +152,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const response = await fetch(manifestUrl);
                 if (!response.ok) throw new Error('PWA configuration not found.');
                 const manifest = await response.json();
-                if (!manifest.target_url) {
+                if (!manifest || !manifest.target_url) {
                     throw new Error('PWA configuration is invalid and missing a target URL.');
                 }
                 document.title = manifest.name;
