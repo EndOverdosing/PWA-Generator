@@ -54,9 +54,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function launchGeneratorMode() {
-        // --- START: Interactive Effects ---
         function initializeInteractiveEffects() {
-            // Grid background spotlight effect
             document.body.addEventListener('mousemove', e => {
                 document.body.style.setProperty('--cursor-x', e.clientX + 'px');
                 document.body.style.setProperty('--cursor-y', e.clientY + 'px');
@@ -68,7 +66,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 document.body.style.setProperty('--cursor-opacity', '0');
             });
 
-            // Interactive border effect for cards
             const interactiveElements = document.querySelectorAll('.interactive-border');
             interactiveElements.forEach(el => {
                 el.addEventListener('mousemove', e => {
@@ -85,7 +82,6 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
         initializeInteractiveEffects();
-        // --- END: Interactive Effects ---
 
         const pwaForm = getEl('#pwa-form');
         const appNameInput = getEl('#appName');
@@ -207,7 +203,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     shareContainer.innerHTML = `<div class="share-card interactive-border"><h3><i class="fa-solid fa-wand-magic-sparkles"></i> Share Your PWA</h3><p>Generate a permanent link to share this configured PWA with anyone.</p><button class="generate-link-btn" id="generate-link-btn"><i class="fa-solid fa-share-nodes"></i> Generate Link</button></div>`;
                     const genButton = getEl('#generate-link-btn');
                     if (genButton) genButton.onclick = handleShareLinkGeneration;
-                    // Re-initialize interactive border for the newly created share card
                     initializeInteractiveEffects();
                 }
             });
@@ -253,7 +248,6 @@ document.addEventListener('DOMContentLoaded', () => {
             svPanel.style.backgroundColor = `rgb(${r},${g},${b})`;
         }
         
-        // --- START: MODIFIED/FIXED FUNCTION ---
         function openColorPicker(input) {
             activeColorTarget = input;
             const wrapper = input.closest('.color-picker-wrapper');
@@ -266,27 +260,23 @@ document.addEventListener('DOMContentLoaded', () => {
             hueSlider.value = pickerState.h;
             updateSvPanelBackground();
 
-            // Make popup visible off-screen to calculate its dimensions
             colorPickerPopup.style.visibility = 'hidden';
             colorPickerPopup.classList.add('visible');
             const popupRect = colorPickerPopup.getBoundingClientRect();
             
-            // Now calculate the correct position relative to the viewport
             let top = rect.bottom + 8;
             let left = rect.left;
 
-            // Adjust if it overflows the viewport
             if (top + popupRect.height > window.innerHeight) {
                 top = rect.top - popupRect.height - 8;
             }
             if (left + popupRect.width > window.innerWidth) {
                 left = rect.right - popupRect.width;
             }
-            // Ensure it's not off-screen
+            
             if (top < 8) top = 8;
             if (left < 8) left = 8;
             
-            // Apply position and make it visible
             colorPickerPopup.style.top = `${top}px`;
             colorPickerPopup.style.left = `${left}px`;
             colorPickerPopup.style.visibility = 'visible';
@@ -295,7 +285,6 @@ document.addEventListener('DOMContentLoaded', () => {
             thumb.style.left = `${pickerState.s * svRect.width}px`;
             thumb.style.top = `${(1 - pickerState.v) * svRect.height}px`;
         }
-        // --- END: MODIFIED/FIXED FUNCTION ---
 
         svPanel.addEventListener('mousedown', (e) => {
             if (e.button !== 0) return;
