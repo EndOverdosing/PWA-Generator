@@ -1,33 +1,37 @@
-const CACHE_NAME = '1';
-const urlsToCache = [
-    '/',
-    '/index.html',
-    '/about',
-    '/privacy-policy',
-    '/terms-of-service',
-    '/css/style.css',
-    '/css/pages.css',
-    '/js/script.js',
-    '/js/pages.js',
-    'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css'
-];
-self.addEventListener('install', event => {
-    event.waitUntil(
-        caches.open(CACHE_NAME)
-            .then(cache => {
-                return cache.addAll(urlsToCache);
-            })
-    );
+self.addEventListener('fetch', (event) => {
+    const url = new URL(event.request.url);
+
+    if (url.pathname === '/manifest.webmanifest') {
+        event.respondWith(generateManifest(url.searchParams));
+    }
 });
-self.addEventListener('fetch', event => {
-    event.respondWith(
-        caches.match(event.request)
-            .then(response => {
-                if (response) {
-                    return response;
-                }
-                return fetch(event.request);
+
+async function generateManifest(params) {
+    const startUrl = `/?${params.toString()}`;
+
+    const iconSrc = params.get('icon');
+
+    const manifest = {
+        name: params.get('name') || 'PWA App',
+        short_name: params.get('s_name') || 'PWA App',
+        description: params.get('desc') || 'A web application.',
+        start_url: startUrl,
+        display: params.get('disp') || 'standalone',
+        background_color: `#${params.get('bg')}` || '#FFFFFF',
+        theme_color: `#${params.get('th')}` || '#000000',
+        icons: [
+            {
+                src: iconSrc,
+                sizes: '512x512',
+                type: 'image/png',
+                purpose: 'any maskable'
             }
-            )
-    );
-});
+        ]
+    };
+
+    return new Response(JSON.stringify(manifest), {
+        headers: {
+            'Content-Type': 'application/manifest+json'
+        }
+    });
+}
