@@ -1,6 +1,10 @@
 {
     "builds": [
         {
+            "src": "api/create.js",
+            "use": "@vercel/node"
+        },
+        {
             "src": "api/manifest.js",
             "use": "@vercel/node"
         },
