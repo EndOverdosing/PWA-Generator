@@ -694,7 +694,8 @@ input[type="file"] {
 
 .color-picker-popup {
     position: fixed;
-    z-index: 1001;
+    /* --- FIX: Increased z-index to ensure it's on top of everything --- */
+    z-index: 5000;
     background-color: var(--background-color-element);
     border: 1px solid var(--border-color-subtle);
     border-radius: var(--border-radius-soft);
@@ -1013,6 +1014,11 @@ body.light-theme .copy-link-btn {
 }
 
 @media (max-width: 640px) {
+    /* --- FIX: Add padding to main content to avoid overlap with fixed footer --- */
+    main {
+        padding-bottom: 6rem;
+    }
+    
     .format-options {
         grid-template-columns: 1fr;
     }
@@ -1038,7 +1044,9 @@ body.light-theme .copy-link-btn {
         bottom: 0;
         left: 0;
         right: 0;
-        background: var(--background-color-page);
+        background: var(--glass-base-bg);
+        -webkit-backdrop-filter: blur(10px);
+        backdrop-filter: blur(10px);
         padding: 0;
         border-top: 1px solid var(--border-color-subtle);
     }
@@ -1058,6 +1066,6 @@ body.light-theme .copy-link-btn {
         padding-bottom: 10vh;
     }
     #toast-notification {
-        bottom: 110px;
+        bottom: 70px;
     }
 }
