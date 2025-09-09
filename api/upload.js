@@ -44,6 +44,6 @@ export default async function handler(req, res) {
 
     } catch (error) {
         console.error('Upload error:', error);
-        return res.status(500).json({ error: 'Error processing file upload.' });
+        return res.status(500).json({ error: error.message || 'An unknown error occurred during file upload.' });
     }
 }
