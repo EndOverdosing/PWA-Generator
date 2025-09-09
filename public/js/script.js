@@ -120,7 +120,7 @@ document.addEventListener('DOMContentLoaded', () => {
             getEl('#copy-link-btn').onclick = () => { getEl('#share-url-input').select(); navigator.clipboard.writeText(shareUrl); showToast('Link copied to clipboard!'); };
         } catch (error) {
             console.error("Error generating share link:", error);
-            const detailedMessage = `Could not generate the link.<br><br><em>"${error.message}"</em><br><br>Please try a different image file.`;
+            const detailedMessage = `Could not process the uploaded image.<br><br>Please ensure it is a standard format (like JPG, PNG, GIF, WebP) and not corrupted.`;
             showCustomAlert(detailedMessage);
             genButton.disabled = false;
             genButton.classList.remove('loading');
