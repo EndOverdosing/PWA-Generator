@@ -6,7 +6,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const pwaForm = getEl('#pwa-form');
     const submitButton = getEl('#submit-button');
     const shareContainer = getEl('#share-container');
-
     const websiteUrlInput = getEl('#websiteUrl-input');
     const appNameInput = getEl('#appName');
     const shortNameInput = getEl('#shortName');
@@ -15,56 +14,21 @@ document.addEventListener('DOMContentLoaded', () => {
     const backgroundColorInput = getEl('#backgroundColor');
     const displayModeInput = getEl('#displayMode');
     const iconUploadInput = getEl('#iconUpload');
-
     const themeColorPreview = getEl('#themeColorPreview');
     const backgroundColorPreview = getEl('#backgroundColorPreview');
     const themeColorValue = getEl('#themeColorValue');
     const backgroundColorValue = getEl('#backgroundColorValue');
     const fileUploadText = getEl('#file-upload-text');
-
     const savePreference = (key, value) => { try { localStorage.setItem(key, value); } catch (e) { console.error(e); } };
     const getPreference = (key) => { try { return localStorage.getItem(key); } catch (e) { return null; } };
-
-    function applyTheme(theme) {
-        document.body.classList.toggle('light-theme', theme === 'light');
-    }
-
+    function applyTheme(theme) { document.body.classList.toggle('light-theme', theme === 'light'); }
     let currentTheme = getPreference('theme') || 'dark';
     applyTheme(currentTheme);
-
-    themeSwitcher.onclick = () => {
-        currentTheme = document.body.classList.contains('light-theme') ? 'dark' : 'light';
-        savePreference('theme', currentTheme);
-        applyTheme(currentTheme);
-    };
-
-    document.addEventListener('mousemove', e => {
-        document.body.style.setProperty('--cursor-x', `${e.clientX}px`);
-        document.body.style.setProperty('--cursor-y', `${e.clientY}px`);
-    });
-
-    document.querySelectorAll('.interactive-border').forEach(element => {
-        element.addEventListener('mousemove', e => {
-            const rect = element.getBoundingClientRect();
-            element.style.setProperty('--x', `${e.clientX - rect.left}px`);
-            element.style.setProperty('--y', `${e.clientY - rect.top}px`);
-            element.style.setProperty('--opacity', '1');
-        });
-        element.addEventListener('mouseleave', () => element.style.setProperty('--opacity', '0'));
-    });
-
-    settingsToggle.addEventListener('click', () => {
-        settingsToggle.classList.toggle('open');
-        settingsContent.classList.toggle('hidden');
-        settingsContent.classList.toggle('visible');
-    });
-
-    function updateColorUI(input, preview, valueSpan) {
-        const color = input.value.toUpperCase();
-        preview.style.backgroundColor = color;
-        valueSpan.textContent = color;
-    }
-
+    themeSwitcher.onclick = () => { currentTheme = document.body.classList.contains('light-theme') ? 'dark' : 'light'; savePreference('theme', currentTheme); applyTheme(currentTheme); };
+    document.addEventListener('mousemove', e => { document.body.style.setProperty('--cursor-x', `${e.clientX}px`); document.body.style.setProperty('--cursor-y', `${e.clientY}px`); });
+    document.querySelectorAll('.interactive-border').forEach(element => { element.addEventListener('mousemove', e => { const rect = element.getBoundingClientRect(); element.style.setProperty('--x', `${e.clientX - rect.left}px`); element.style.setProperty('--y', `${e.clientY - rect.top}px`); element.style.setProperty('--opacity', '1'); }); element.addEventListener('mouseleave', () => element.style.setProperty('--opacity', '0')); });
+    settingsToggle.addEventListener('click', () => { settingsToggle.classList.toggle('open'); settingsContent.classList.toggle('hidden'); settingsContent.classList.toggle('visible'); });
+    function updateColorUI(input, preview, valueSpan) { const color = input.value.toUpperCase(); preview.style.backgroundColor = color; valueSpan.textContent = color; }
     const colorPickerPopup = document.createElement('div');
     colorPickerPopup.className = 'color-picker-popup';
     colorPickerPopup.innerHTML = `<div class="color-picker-sv-panel"><div class="color-picker-thumb"></div></div><input type="range" min="0" max="360" value="0" class="color-picker-hue-slider">`;
@@ -84,52 +48,22 @@ document.addEventListener('DOMContentLoaded', () => {
     updateColorUI(themeColorInput, themeColorPreview, themeColorValue);
     updateColorUI(backgroundColorInput, backgroundColorPreview, backgroundColorValue);
     [themeColorInput, backgroundColorInput].forEach(input => { const wrapper = input.closest('.color-picker-wrapper'); wrapper.addEventListener('click', () => { if (colorPickerPopup.classList.contains('visible') && activeColorTarget === input) { colorPickerPopup.classList.remove('visible'); activeColorTarget = null; } else { openColorPicker(input); } }); });
-
-    iconUploadInput.addEventListener('change', () => {
-        if (iconUploadInput.files.length > 0) {
-            fileUploadText.textContent = iconUploadInput.files[0].name;
-            fileUploadText.style.color = 'var(--primary-text-color)';
-        } else {
-            fileUploadText.textContent = 'No file chosen...';
-            fileUploadText.style.color = 'var(--muted-text-color)';
-        }
-    });
-
+    iconUploadInput.addEventListener('change', () => { if (iconUploadInput.files.length > 0) { fileUploadText.textContent = iconUploadInput.files[0].name; fileUploadText.style.color = 'var(--primary-text-color)'; } else { fileUploadText.textContent = 'No file chosen...'; fileUploadText.style.color = 'var(--muted-text-color)'; } });
     const alertContainer = getEl('#custom-alert-container');
-
-    function showToast(message) {
-        const toast = getEl('#toast-notification');
-        toast.innerHTML = `<i class="fa-solid fa-check-double"></i> ${message}`;
-        toast.classList.remove('hidden');
-        setTimeout(() => toast.classList.add('visible'), 10);
-        setTimeout(() => { toast.classList.remove('visible'); setTimeout(() => toast.classList.add('hidden'), 500); }, 4000);
-    }
-
-    function showCustomAlert(message) {
-        alertContainer.innerHTML = `<div class="custom-alert-card interactive-border"><h3><i class="fa-solid fa-circle-exclamation"></i> Attention</h3><p>${message}</p><button class="custom-alert-close-btn">Okay</button></div>`;
-        alertContainer.classList.remove('hidden');
-        setTimeout(() => alertContainer.classList.add('visible'), 10);
-        const closeBtn = alertContainer.querySelector('.custom-alert-close-btn'), alertCard = alertContainer.querySelector('.custom-alert-card');
-        const closeAlert = () => { alertContainer.classList.remove('visible'); setTimeout(() => alertContainer.classList.add('hidden'), 300); };
-        closeBtn.onclick = closeAlert;
-        alertContainer.onclick = (e) => { if (e.target === alertContainer) closeAlert(); };
-        alertCard.addEventListener('mousemove', e => { const rect = alertCard.getBoundingClientRect(); alertCard.style.setProperty('--x', `${e.clientX - rect.left}px`); alertCard.style.setProperty('--y', `${e.clientY - rect.top}px`); alertCard.style.setProperty('--opacity', '1'); });
-        alertCard.addEventListener('mouseleave', () => alertCard.style.setProperty('--opacity', '0'));
-    }
+    function showToast(message) { const toast = getEl('#toast-notification'); toast.innerHTML = `<i class="fa-solid fa-check-double"></i> ${message}`; toast.classList.remove('hidden'); setTimeout(() => toast.classList.add('visible'), 10); setTimeout(() => { toast.classList.remove('visible'); setTimeout(() => toast.classList.add('hidden'), 500); }, 4000); }
+    function showCustomAlert(message) { alertContainer.innerHTML = `<div class="custom-alert-card interactive-border"><h3><i class="fa-solid fa-circle-exclamation"></i> Attention</h3><p>${message}</p><button class="custom-alert-close-btn">Okay</button></div>`; alertContainer.classList.remove('hidden'); setTimeout(() => alertContainer.classList.add('visible'), 10); const closeBtn = alertContainer.querySelector('.custom-alert-close-btn'), alertCard = alertContainer.querySelector('.custom-alert-card'); const closeAlert = () => { alertContainer.classList.remove('visible'); setTimeout(() => alertContainer.classList.add('hidden'), 300); }; closeBtn.onclick = closeAlert; alertContainer.onclick = (e) => { if (e.target === alertContainer) closeAlert(); }; alertCard.addEventListener('mousemove', e => { const rect = alertCard.getBoundingClientRect(); alertCard.style.setProperty('--x', `${e.clientX - rect.left}px`); alertCard.style.setProperty('--y', `${e.clientY - rect.top}px`); alertCard.style.setProperty('--opacity', '1'); }); alertCard.addEventListener('mouseleave', () => alertCard.style.setProperty('--opacity', '0')); }
 
     async function initializeFromUrlParams() {
         const params = new URLSearchParams(window.location.search);
         if (params.has('url') && params.has('name') && params.has('icon')) {
             getEl('main').style.display = 'none';
             getEl('footer').style.display = 'none';
-
             document.title = params.get('name');
 
-            const manifestUrl = `/manifest.webmanifest${window.location.search}`;
+            const manifestUrl = `/api/manifest${window.location.search}`;
 
             const existingManifest = document.querySelector('link[rel="manifest"]');
             if (existingManifest) existingManifest.remove();
-
             const manifestLink = document.createElement('link');
             manifestLink.rel = 'manifest';
             manifestLink.href = manifestUrl;
@@ -139,16 +73,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 try {
                     await navigator.serviceWorker.register('/sw.js');
                 } catch (error) {
-                    console.error('Service Worker registration failed:', error);
-                    showCustomAlert('Could not initialize the PWA environment. The service worker failed to register.');
+                    showCustomAlert('Could not initialize the PWA environment.');
                 }
-            } else {
-                showCustomAlert('Service Workers are not supported. This PWA may not be installable.');
             }
             
             showToast("PWA is ready! This page is now installable.");
             setTimeout(() => launchPwaWrapper(params.get('url'), '#' + params.get('bg')), 500);
-
             return true;
         }
         return false;
@@ -161,14 +91,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
         shareContainer.classList.remove('hidden');
-        shareContainer.innerHTML = `
-            <div class="share-card interactive-border">
-                <h3><i class="fa-solid fa-wand-magic-sparkles"></i> Share Your PWA</h3>
-                <p>Generate a permanent link to share this configured PWA with anyone.</p>
-                <button class="generate-link-btn" id="generate-link-btn">
-                    <i class="fa-solid fa-share-nodes"></i> Generate Link
-                </button>
-            </div>`;
+        shareContainer.innerHTML = `<div class="share-card interactive-border"><h3><i class="fa-solid fa-wand-magic-sparkles"></i> Share Your PWA</h3><p>Generate a permanent link to share this configured PWA with anyone.</p><button class="generate-link-btn" id="generate-link-btn"><i class="fa-solid fa-share-nodes"></i> Generate Link</button></div>`;
         getEl('#generate-link-btn').onclick = handleShareLinkGeneration;
     });
 
@@ -177,16 +100,15 @@ document.addEventListener('DOMContentLoaded', () => {
         genButton.disabled = true;
         genButton.classList.add('loading');
         try {
-            const iconFile = iconUploadInput.files[0];
-            const toBase64 = file => new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.readAsDataURL(file);
-                reader.onload = () => resolve(reader.result);
-                reader.onerror = reject;
-            });
+            const formData = new FormData();
+            formData.append('image', iconUploadInput.files[0]);
 
-            const iconUrl = await toBase64(iconFile);
+            const response = await fetch('/api/upload', { method: 'POST', body: formData });
+            const result = await response.json();
 
+            if (!response.ok) throw new Error(result.error || 'Upload failed');
+            
+            const iconUrl = result.link;
             const params = new URLSearchParams();
             params.set('url', websiteUrlInput.value);
             params.set('name', appNameInput.value);
@@ -196,21 +118,13 @@ document.addEventListener('DOMContentLoaded', () => {
             params.set('bg', backgroundColorInput.value.substring(1));
             params.set('th', themeColorInput.value.substring(1));
             params.set('icon', iconUrl);
+
             const shareUrl = `${window.location.origin}${window.location.pathname}?${params.toString()}`;
             genButton.remove();
             getEl('.share-card p').textContent = 'Your shareable link is ready! Anyone visiting this URL will get your configured PWA.';
-            getEl('.share-card').innerHTML += `
-            <div class="share-link-result">
-                <input type="text" readonly id="share-url-input" value="${shareUrl}">
-                <button class="copy-link-btn" id="copy-link-btn">Copy</button>
-            </div>`;
-            getEl('#copy-link-btn').onclick = () => {
-                getEl('#share-url-input').select();
-                navigator.clipboard.writeText(shareUrl);
-                showToast('Link copied to clipboard!');
-            };
+            getEl('.share-card').innerHTML += `<div class="share-link-result"><input type="text" readonly id="share-url-input" value="${shareUrl}"><button class="copy-link-btn" id="copy-link-btn">Copy</button></div>`;
+            getEl('#copy-link-btn').onclick = () => { getEl('#share-url-input').select(); navigator.clipboard.writeText(shareUrl); showToast('Link copied to clipboard!'); };
         } catch (error) {
-            console.error("Error generating share link:", error);
             showCustomAlert("Could not generate shareable link. Please try again.");
             genButton.disabled = false;
             genButton.classList.remove('loading');
@@ -233,9 +147,8 @@ document.addEventListener('DOMContentLoaded', () => {
         document.addEventListener(moveEvent, (e) => { if (!isDragging) return; wasDragged = true; e.preventDefault(); const event = isTouchDevice ? e.touches[0] : e; let newX = event.clientX - offset.x, newY = event.clientY - offset.y; const maxX = window.innerWidth - backBtn.offsetWidth, maxY = window.innerHeight - backBtn.offsetHeight; newX = Math.max(0, Math.min(newX, maxX)); newY = Math.max(0, Math.min(newY, maxY)); backBtn.style.left = `${newX}px`; backBtn.style.top = `${newY}px`; }, { passive: false });
         document.addEventListener(endEvent, () => { if (isDragging) { isDragging = false; backBtn.style.cursor = 'grab'; } });
     }
-
+    
     document.querySelectorAll('.select-wrapper').forEach(setupCustomSelect);
     function setupCustomSelect(wrapper) { const nativeSelect = wrapper.querySelector('select'); nativeSelect.style.display = 'none'; const customSelect = document.createElement('div'); customSelect.className = 'custom-select'; wrapper.appendChild(customSelect); const trigger = document.createElement('div'); trigger.className = 'custom-select__trigger'; const triggerSpan = document.createElement('span'); trigger.appendChild(triggerSpan); customSelect.appendChild(trigger); const options = document.createElement('div'); options.className = 'custom-options'; customSelect.appendChild(options); const updateSelection = () => { const selectedOption = Array.from(nativeSelect.options).find(opt => opt.selected); triggerSpan.textContent = selectedOption.textContent; Array.from(options.children).forEach(optEl => { optEl.classList.toggle('selected', optEl.dataset.value === selectedOption.value); }); }; Array.from(nativeSelect.options).forEach(option => { const customOption = document.createElement('div'); customOption.className = 'custom-option'; customOption.textContent = option.textContent; customOption.dataset.value = option.value; options.appendChild(customOption); customOption.addEventListener('click', () => { nativeSelect.value = option.value; nativeSelect.dispatchEvent(new Event('change')); customSelect.classList.remove('open'); updateSelection(); }); }); trigger.addEventListener('click', () => customSelect.classList.toggle('open')); document.addEventListener('click', (e) => { if (!customSelect.contains(e.target)) customSelect.classList.remove('open'); }); nativeSelect.addEventListener('change', updateSelection); updateSelection(); }
-
     initializeFromUrlParams();
 });
