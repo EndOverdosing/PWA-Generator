@@ -1013,11 +1013,6 @@ body.light-theme .copy-link-btn {
 }
 
 @media (max-width: 640px) {
-    main {
-        padding: 3rem 1rem 8rem;
-        justify-content: flex-start;
-        align-items: center;
-    }
     .format-options {
         grid-template-columns: 1fr;
     }
