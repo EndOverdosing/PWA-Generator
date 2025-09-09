@@ -1,13 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="PWA-Generator - Instantly turn any website into an installable PWA.">
-    <title>PWA-Generator - Website to PWA-Generator</title>
+    <title>PWA-Generator - Website to PWA</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="style.css">
     <style>
         body.pwa-mode main, body.pwa-mode footer, body.pwa-mode .theme-switcher, body.pwa-mode .blurry-orbs {
             display: none;
@@ -17,112 +16,113 @@
         }
     </style>
 </head>
-
 <body>
     <div class="blurry-orbs">
         <div></div>
         <div></div>
         <div></div>
     </div>
+
     <div class="theme-switcher" id="theme-switcher" title="Toggle Theme">
         <div class="sun-icon"><i class="fa-solid fa-sun"></i></div>
         <div class="moon-icon"><i class="fa-solid fa-moon"></i></div>
     </div>
 
-    <main class="main-content-wrapper">
-        <header class="hero-header">
-            <h1>PWA-Generator</h1>
-            <p class="subtitle">Turn any website into an installable Progressive Web App.</p>
-        </header>
+    <main>
+        <div class="main-content-wrapper">
+            <header class="hero-header">
+                <h1>PWA-Generator</h1>
+                <p class="subtitle">Turn any website into an installable Progressive Web App.</p>
+            </header>
 
-        <form class="url-form-container" id="pwa-form">
-            <div class="url-form interactive-border">
-                <i class="fa-solid fa-link form-icon"></i>
-                <input type="url" id="websiteUrl-input" placeholder="Enter Website URL to wrap..." required
-                    autocomplete="off">
-                <button id="submit-button" type="submit" title="Forge PWA">
-                    <i class="fa-solid fa-hammer"></i>
-                </button>
-            </div>
-        </form>
+            <form class="url-form-container" id="pwa-form">
+                <div class="url-form interactive-border">
+                    <i class="fa-solid fa-link form-icon"></i>
+                    <input type="url" id="websiteUrl-input" placeholder="Enter Website URL to wrap..." required autocomplete="off">
+                    <button id="submit-button" type="button" title="Generate Link">
+                        <i class="fa-solid fa-share-nodes"></i>
+                    </button>
+                </div>
+            </form>
 
-        <div id="pwa-settings" class="interactive-border">
-            <div class="settings-header" id="settings-toggle">
-                <i class="fa-solid fa-chevron-right"></i>
-                <span>PWA Settings</span>
+            <div id="pwa-settings" class="interactive-border">
+                <div class="settings-header" id="settings-toggle">
+                    <i class="fa-solid fa-chevron-right"></i>
+                    <span>PWA Settings</span>
+                </div>
+                <div class="format-options" id="settings-content">
+                    <div class="metadata-input-group">
+                        <label for="appName">App Name</label>
+                        <input type="text" id="appName" placeholder="My Awesome App" required>
+                    </div>
+                    <div class="metadata-input-group">
+                        <label for="shortName">Short Name</label>
+                        <input type="text" id="shortName" placeholder="AwesomeApp" required>
+                    </div>
+                    <div class="metadata-input-group full-width-item">
+                        <label for="description">Description</label>
+                        <input type="text" id="description" placeholder="A PWA wrapper for my favorite site" required>
+                    </div>
+                    <div class="metadata-input-group">
+                        <label for="themeColor">Theme Color</label>
+                        <div class="color-picker-wrapper" data-color-target="theme">
+                            <div id="themeColorPreview" class="color-preview-swatch"></div>
+                            <span id="themeColorValue" class="color-value">#FFFFFF</span>
+                            <input type="hidden" id="themeColor" value="#FFFFFF">
+                        </div>
+                    </div>
+                    <div class="metadata-input-group">
+                        <label for="backgroundColor">Background Color</label>
+                        <div class="color-picker-wrapper" data-color-target="background">
+                            <div id="backgroundColorPreview" class="color-preview-swatch"></div>
+                            <span id="backgroundColorValue" class="color-value">#000000</span>
+                            <input type="hidden" id="backgroundColor" value="#000000">
+                        </div>
+                    </div>
+                    <div class="metadata-input-group">
+                        <label for="displayMode">Display Mode</label>
+                        <div class="select-wrapper">
+                            <select id="displayMode">
+                                <option value="standalone">Standalone</option>
+                                <option value="fullscreen">Fullscreen</option>
+                                <option value="minimal-ui">Minimal UI</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="metadata-input-group">
+                        <label for="iconColor">Icon Background</label>
+                        <div class="color-picker-wrapper" data-color-target="icon">
+                            <div id="iconColorPreview" class="color-preview-swatch"></div>
+                            <span id="iconColorValue" class="color-value">#3B82F6</span>
+                            <input type="hidden" id="iconColor" value="#3B82F6">
+                        </div>
+                    </div>
+                    <div class="metadata-input-group full-width-item">
+                        <label>Generated Icon Preview</label>
+                        <div class="icon-preview-wrapper">
+                            <img id="iconPreview" src="" alt="Generated App Icon Preview" class="icon-preview-img">
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div class="format-options hidden" id="settings-content">
-                <div class="metadata-input-group">
-                    <label for="appName">App Name</label>
-                    <input type="text" id="appName" placeholder="My Awesome App" required>
-                </div>
-                <div class="metadata-input-group">
-                    <label for="shortName">Short Name</label>
-                    <input type="text" id="shortName" placeholder="AwesomeApp" required>
-                </div>
-                <div class="metadata-input-group">
-                    <label for="description">Description</label>
-                    <input type="text" id="description" placeholder="A PWA wrapper for my favorite site" required>
-                </div>
-                <div class="metadata-input-group">
-                    <label for="themeColor">Theme Color</label>
-                    <div class="color-picker-wrapper">
-                        <div id="themeColorPreview" class="color-preview-swatch"></div>
-                        <span id="themeColorValue" class="color-value">#FFFFFF</span>
-                        <input type="hidden" id="themeColor" value="#ffffff">
-                    </div>
-                </div>
-                <div class="metadata-input-group">
-                    <label for="backgroundColor">Background Color</label>
-                    <div class="color-picker-wrapper">
-                        <div id="backgroundColorPreview" class="color-preview-swatch"></div>
-                        <span id="backgroundColorValue" class="color-value">#000000</span>
-                        <input type="hidden" id="backgroundColor" value="#000000">
-                    </div>
-                </div>
-                <div class="metadata-input-group">
-                    <label for="displayMode">Display Mode</label>
-                    <div class="select-wrapper">
-                        <select id="displayMode">
-                            <option value="standalone">Standalone</option>
-                            <option value="fullscreen">Fullscreen</option>
-                            <option value="minimal-ui">Minimal UI</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="metadata-input-group">
-                    <label for="iconColor">Icon Background</label>
-                    <div class="color-picker-wrapper">
-                        <div id="iconColorPreview" class="color-preview-swatch"></div>
-                        <span id="iconColorValue" class="color-value">#3B82F6</span>
-                        <input type="hidden" id="iconColor" value="#3B82F6">
-                    </div>
-                </div>
-                <div class="metadata-input-group">
-                    <label>Generated Icon</label>
-                    <div class="icon-preview-wrapper">
-                        <img id="iconPreview" src="" alt="Generated App Icon Preview" class="icon-preview-img">
-                    </div>
-                </div>
-            </div>
+
+            <div id="share-container" class="interactive-border hidden"></div>
         </div>
-
-        <div id="share-container" class="hidden"></div>
-        <div id="custom-alert-container" class="hidden"></div>
     </main>
 
     <footer class="page-footer">
         <nav>
             <a href="/">Home</a>
-            <a href="/about">About</a>
-            <a href="/privacy-policy">Privacy</a>
-            <a href="/terms-of-service">Terms</a>
+            <a href="#">About</a>
+            <a href="#">Privacy</a>
+            <a href="#">Terms</a>
         </nav>
     </footer>
 
-    <div id="pwa-wrapper-view" class="hidden"></div>
+    <div id="pwa-wrapper-view" style="display: none;"></div>
+    <div id="color-picker-popup" class="color-picker-popup"></div>
+    <div id="custom-alert-container" class="hidden"></div>
     <div id="toast-notification" class="hidden"></div>
-    <script src="/js/script.js"></script>
+    <script src="script.js"></script>
 </body>
-
 </html>
