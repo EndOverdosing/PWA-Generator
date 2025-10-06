@@ -1,0 +1,15 @@
+{
+    "name": "PWA Generator",
+    "short_name": "PWA Generator",
+    "description": "PWA Generator - Turn any website into an installable Progressive Web App.",
+    "start_url": "/",
+    "display": "standalone",
+    "theme_color": "#ffffff",
+    "background_color": "#ffffff",
+    "icons": [
+        {
+            "src": "favicon.ico",
+            "type": "image/png"
+        }
+    ]
+}

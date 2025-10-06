@@ -4,10 +4,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PWA Maker - About Us</title>
+    <meta name="description" content="PWA-Generator - Instantly turn any website into an installable PWA.">
+    <title>PWA Generator - About Us</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="/css/pages.css">
+    <link rel="stylesheet" href="css/pages.css">
+    <link rel="icon" href="/favicon.ico">
     <link rel="manifest" href="/manifest.json">
+    <style>
+        body.pwa-mode main,
+        body.pwa-mode footer,
+        body.pwa-mode .theme-switcher,
+        body.pwa-mode .blurry-orbs {
+            display: none;
+        }
+
+        body.pwa-mode #pwa-wrapper-view {
+            display: block;
+        }
+    </style>
 </head>
 
 <body>

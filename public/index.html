@@ -8,10 +8,16 @@
     <title>PWA Generator - Website to PWA</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css" rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
+    <link rel="icon" href="/favicon.ico">
+    <link rel="manifest" href="/manifest.json">
     <style>
-        body.pwa-mode main, body.pwa-mode footer, body.pwa-mode .theme-switcher, body.pwa-mode .blurry-orbs {
+        body.pwa-mode main,
+        body.pwa-mode footer,
+        body.pwa-mode .theme-switcher,
+        body.pwa-mode .blurry-orbs {
             display: none;
         }
+
         body.pwa-mode #pwa-wrapper-view {
             display: block;
         }
@@ -35,7 +41,7 @@
                 <h1>PWA Generator</h1>
                 <p class="subtitle">Turn any website into an installable Progressive Web App.</p>
             </header>
-    
+
             <form class="url-form-container" id="pwa-form">
                 <div class="url-form interactive-border">
                     <i class="fa-solid fa-link form-icon"></i>
@@ -46,7 +52,7 @@
                     </button>
                 </div>
             </form>
-    
+
             <div id="pwa-settings" class="interactive-border">
                 <div class="settings-header" id="settings-toggle">
                     <i class="fa-solid fa-chevron-right"></i>
@@ -107,7 +113,7 @@
                     </div>
                 </div>
             </div>
-    
+
             <div id="share-container" class="hidden"></div>
             <div id="custom-alert-container" class="hidden"></div>
         </div>
